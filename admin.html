@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JAZZFRAME — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --ink:#0a0804; --cream:#f5f0e8; --gold:#c9a84c; --rust:#b54a2f;
+    --slate:#2a3240; --mist:#8a9aaa; --panel:#111009;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--ink);color:var(--cream);font-family:'DM Mono',monospace;display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
+
+  /* Sidebar */
+  aside{background:var(--panel);border-right:1px solid rgba(201,168,76,0.15);padding:2rem 1.5rem;display:flex;flex-direction:column;gap:0.3rem;}
+  .aside-logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:900;letter-spacing:0.25em;color:var(--gold);text-transform:uppercase;margin-bottom:0.2rem;}
+  .aside-sub{font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--mist);margin-bottom:2rem;}
+  .nav-item{padding:0.55rem 0.8rem;font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--mist);cursor:pointer;border-left:2px solid transparent;transition:all 0.2s;border-radius:0 2px 2px 0;}
+  .nav-item:hover{color:var(--cream);background:rgba(201,168,76,0.05);}
+  .nav-item.on{color:var(--gold);border-left-color:var(--gold);background:rgba(201,168,76,0.06);}
+  .aside-divider{height:1px;background:rgba(201,168,76,0.12);margin:1rem 0;}
+  .aside-session{margin-top:auto;padding:1rem;border:1px solid rgba(201,168,76,0.2);font-size:0.62rem;}
+  .aside-session-label{font-size:0.55rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--mist);margin-bottom:0.4rem;}
+  .aside-session-id{color:var(--gold);}
+
+  /* Login */
+  #loginScreen{grid-column:1/-1;display:flex;align-items:center;justify-content:center;}
+  .login-card{border:1px solid rgba(201,168,76,0.25);padding:3rem;width:100%;max-width:400px;}
+  .login-card::before{content:'';display:block;height:2px;background:linear-gradient(90deg,var(--rust),var(--gold));margin-bottom:2rem;}
+  .login-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-style:italic;margin-bottom:1.5rem;}
+
+  /* Main */
+  main{padding:2.5rem 3rem;overflow-y:auto;}
+  .page{display:none;}
+  .page.on{display:block;}
+
+  .page-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-style:italic;margin-bottom:0.3rem;}
+  .page-sub{font-size:0.62rem;color:var(--mist);letter-spacing:0.08em;margin-bottom:2.5rem;}
+
+  /* Cards / Stats */
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:3rem;}
+  .stat-card{border:1px solid rgba(201,168,76,0.18);padding:1.4rem;}
+  .stat-num{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:900;color:var(--gold);line-height:1;}
+  .stat-label{font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--mist);margin-top:0.4rem;}
+
+  /* Table */
+  .table-wrap{border:1px solid rgba(201,168,76,0.15);overflow:hidden;margin-bottom:2rem;}
+  .table-head{background:rgba(201,168,76,0.06);display:grid;padding:0.7rem 1rem;font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--mist);border-bottom:1px solid rgba(201,168,76,0.12);}
+  .table-row{display:grid;padding:0.75rem 1rem;border-bottom:1px solid rgba(201,168,76,0.08);align-items:center;transition:background 0.15s;}
+  .table-row:last-child{border-bottom:none;}
+  .table-row:hover{background:rgba(201,168,76,0.03);}
+  .invite-cols{grid-template-columns:2fr 1.5fr 1fr 1fr 80px;}
+  .submit-cols{grid-template-columns:1.5fr 1fr 2fr 80px 80px;}
+  .badge{display:inline-block;padding:0.15rem 0.5rem;font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;}
+  .badge-used{background:rgba(201,168,76,0.15);color:var(--gold);}
+  .badge-unused{background:rgba(42,50,64,0.8);color:var(--mist);}
+  .badge-new{background:rgba(181,74,47,0.2);color:var(--rust);}
+
+  .action-btn{border:1px solid rgba(201,168,76,0.25);background:transparent;color:var(--mist);padding:0.2rem 0.5rem;font-size:0.55rem;font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;text-transform:uppercase;}
+  .action-btn:hover{border-color:var(--gold);color:var(--gold);}
+  .action-btn.del:hover{border-color:var(--rust);color:var(--rust);}
+
+  /* Forms */
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;}
+  .form-group{display:flex;flex-direction:column;gap:0.35rem;}
+  .field-label{font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--mist);}
+  .field-input{background:rgba(10,8,4,0.6);border:1px solid rgba(201,168,76,0.2);color:var(--cream);padding:0.65rem 0.9rem;font-family:'DM Mono',monospace;font-size:0.75rem;outline:none;transition:border-color 0.2s;width:100%;}
+  .field-input:focus{border-color:var(--gold);}
+  .field-input::placeholder{color:rgba(138,154,170,0.35);}
+  textarea.field-input{resize:vertical;min-height:80px;line-height:1.6;}
+
+  .primary-btn{padding:0.75rem 2rem;background:var(--gold);color:var(--ink);border:none;font-family:'DM Mono',monospace;font-size:0.7rem;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:background 0.2s;font-weight:500;}
+  .primary-btn:hover{background:var(--cream);}
+  .primary-btn:disabled{background:rgba(201,168,76,0.3);color:rgba(10,8,4,0.4);cursor:not-allowed;}
+
+  .section-block{margin-bottom:2.5rem;}
+  .block-title{font-size:0.65rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--mist);margin-bottom:1.2rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(201,168,76,0.12);}
+
+  /* Invite bulk */
+  .bulk-area{position:relative;}
+  .bulk-hint{font-size:0.58rem;color:var(--mist);margin-top:0.4rem;line-height:1.6;}
+
+  /* Audio upload */
+  .audio-zone{border:1.5px dashed rgba(201,168,76,0.25);padding:2rem;text-align:center;cursor:pointer;transition:all 0.3s;margin-bottom:1rem;}
+  .audio-zone:hover{border-color:var(--gold);background:rgba(201,168,76,0.03);}
+  .audio-zone-label{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;color:var(--mist);}
+  .audio-zone-sub{font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(138,154,170,0.45);margin-top:0.3rem;}
+  .audio-player-wrap{margin-bottom:1rem;}
+  audio{width:100%;outline:none;filter:sepia(0.3);}
+  #audioUploadInput{display:none;}
+
+  /* Video grid (submissions) */
+  .vid-thumb{width:80px;height:50px;object-fit:cover;border:1px solid rgba(201,168,76,0.15);}
+
+  /* Toast */
+  .toast{position:fixed;bottom:2rem;right:2rem;padding:0.75rem 1.4rem;font-size:0.7rem;letter-spacing:0.1em;transform:translateY(150%);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);z-index:999;}
+  .toast.ok{background:var(--gold);color:var(--ink);}
+  .toast.err{background:var(--rust);color:var(--cream);}
+  .toast.show{transform:translateY(0);}
+
+  ::-webkit-scrollbar{width:3px;}
+  ::-webkit-scrollbar-track{background:var(--ink);}
+  ::-webkit-scrollbar-thumb{background:rgba(201,168,76,0.2);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-title">Admin Access</div>
+    <div class="form-group" style="margin-bottom:1rem">
+      <label class="field-label">Admin password</label>
+      <input class="field-input" id="adminPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()">
+    </div>
+    <button class="primary-btn" onclick="adminLogin()">Enter</button>
+    <div style="font-size:0.62rem;color:var(--rust);margin-top:0.8rem" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<aside id="adminSidebar" style="display:none">
+  <div class="aside-logo">Jazzframe</div>
+  <div class="aside-sub">Admin Console</div>
+  <div class="nav-item on" onclick="showPage('dashboard',this)">Dashboard</div>
+  <div class="nav-item" onclick="showPage('invites',this)">Invites</div>
+  <div class="nav-item" onclick="showPage('submissions',this)">Submissions</div>
+  <div class="nav-item" onclick="showPage('session',this)">Session Settings</div>
+  <div class="aside-divider"></div>
+  <div class="nav-item" onclick="adminLogout()">Sign Out</div>
+  <div class="aside-session">
+    <div class="aside-session-label">Active Session</div>
+    <div class="aside-session-id" id="sideSessionId">—</div>
+  </div>
+</aside>
+
+<main id="adminMain" style="display:none">
+
+  <!-- DASHBOARD -->
+  <div class="page on" id="page-dashboard">
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Overview of the current session</div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-num" id="statInvites">—</div><div class="stat-label">Invites sent</div></div>
+      <div class="stat-card"><div class="stat-num" id="statUsed">—</div><div class="stat-label">Accessed</div></div>
+      <div class="stat-card"><div class="stat-num" id="statSubs">—</div><div class="stat-label">Submissions</div></div>
+      <div class="stat-card"><div class="stat-num" id="statVotes">—</div><div class="stat-label">Total votes</div></div>
+    </div>
+    <div class="block-title">Recent submissions</div>
+    <div class="table-wrap">
+      <div class="table-head submit-cols">
+        <span>Author</span><span>Submitted</span><span>Note</span><span>Votes</span><span></span>
+      </div>
+      <div id="dashSubmissions"></div>
+    </div>
+  </div>
+
+  <!-- INVITES -->
+  <div class="page" id="page-invites">
+    <div class="page-title">Invitations</div>
+    <div class="page-sub">Manage who can access and submit to this session</div>
+
+    <div class="section-block">
+      <div class="block-title">Add invites</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="field-label">Email address</label>
+          <input class="field-input" id="inviteEmail" type="email" placeholder="collaborator@example.com">
+        </div>
+        <div class="form-group">
+          <label class="field-label">Name (optional)</label>
+          <input class="field-input" id="inviteName" type="text" placeholder="Their name">
+        </div>
+      </div>
+      <button class="primary-btn" onclick="addInvite()">Send Invite</button>
+    </div>
+
+    <div class="section-block">
+      <div class="block-title">Bulk import — one email per line</div>
+      <div class="bulk-area">
+        <textarea class="field-input" id="bulkEmails" rows="5" placeholder="alice@example.com&#10;bob@example.com&#10;carol@example.com"></textarea>
+        <div class="bulk-hint">Emails will be added to the invite list. They'll need the session URL to access.</div>
+      </div>
+      <br><br>
+      <button class="primary-btn" onclick="bulkInvite()">Add All</button>
+    </div>
+
+    <div class="block-title">Invite list</div>
+    <div class="table-wrap">
+      <div class="table-head invite-cols">
+        <span>Email</span><span>Name</span><span>Added</span><span>Status</span><span></span>
+      </div>
+      <div id="inviteList"></div>
+    </div>
+  </div>
+
+  <!-- SUBMISSIONS -->
+  <div class="page" id="page-submissions">
+    <div class="page-title">Submissions</div>
+    <div class="page-sub">All video submissions for this session</div>
+    <div class="table-wrap">
+      <div class="table-head submit-cols">
+        <span>Author</span><span>Submitted</span><span>Note</span><span>Votes</span><span></span>
+      </div>
+      <div id="allSubmissions"></div>
+    </div>
+  </div>
+
+  <!-- SESSION SETTINGS -->
+  <div class="page" id="page-session">
+    <div class="page-title">Session Settings</div>
+    <div class="page-sub">Configure the active session</div>
+
+    <div class="section-block">
+      <div class="block-title">Session details</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="field-label">Session ID</label>
+          <input class="field-input" id="sessId" type="text" placeholder="session_014">
+        </div>
+        <div class="form-group">
+          <label class="field-label">Track title</label>
+          <input class="field-input" id="sessTitle" type="text" placeholder="Blue at Half Past Three">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="field-label">Track metadata</label>
+          <input class="field-input" id="sessMeta" type="text" placeholder="AI-generated · 4/4 Ballad · 120bpm">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:1rem">
+        <label class="field-label">Session description</label>
+        <textarea class="field-input" id="sessDesc" placeholder="Instructions or context for invited collaborators…"></textarea>
+      </div>
+      <button class="primary-btn" onclick="saveSession()">Save Session</button>
+    </div>
+
+    <div class="section-block">
+      <div class="block-title">Audio track</div>
+      <input type="file" id="audioUploadInput" accept="audio/mp3,audio/wav,audio/aiff,audio/flac,audio/ogg" onchange="handleAudioSelect(this)">
+      <div class="audio-zone" onclick="document.getElementById('audioUploadInput').click()">
+        <div class="audio-zone-label">Upload your jazz recording</div>
+        <div class="audio-zone-sub">MP3 · WAV · AIFF · FLAC · up to 100MB</div>
+      </div>
+      <div class="audio-player-wrap" id="audioPlayerWrap" style="display:none">
+        <audio id="adminAudioPreview" controls></audio>
+      </div>
+      <button class="primary-btn" id="audioUploadBtn" style="display:none" onclick="uploadAudio()">Upload Audio to Session</button>
+    </div>
+
+    <div class="section-block">
+      <div class="block-title">Danger zone</div>
+      <button class="action-btn del" onclick="clearAllSubmissions()">Delete all submissions for this session</button>
+    </div>
+  </div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config ──
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const ADMIN_PASSWORD = 'YOUR_ADMIN_PASSWORD'; // change this — store in env in production
+let SESSION_ID = 'session_014';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let invites = [], submissions = [], selectedAudio = null;
+
+// ── Admin auth (simple password gate) ──
+function adminLogin() {
+  const pass = document.getElementById('adminPass').value;
+  if (pass !== ADMIN_PASSWORD) {
+    document.getElementById('loginErr').textContent = 'Incorrect password.'; return;
+  }
+  sessionStorage.setItem('jf_admin', '1');
+  showAdmin();
+}
+function adminLogout() { sessionStorage.removeItem('jf_admin'); location.reload(); }
+
+function showAdmin() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('adminSidebar').style.display = 'flex';
+  document.getElementById('adminMain').style.display = 'block';
+  document.getElementById('sideSessionId').textContent = SESSION_ID;
+  loadAll();
+}
+
+// ── Navigation ──
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('on'));
+  document.getElementById('page-' + id).classList.add('on');
+  el.classList.add('on');
+}
+
+// ── Load all data ──
+async function loadAll() {
+  await Promise.all([loadInvites(), loadSubmissions()]);
+  renderDashboard();
+  populateSessionForm();
+}
+
+async function loadInvites() {
+  const { data } = await sb.from('invites').select('*').eq('session_id', SESSION_ID).order('created_at', {ascending:false});
+  invites = data || [];
+  renderInviteList();
+}
+
+async function loadSubmissions() {
+  const { data } = await sb.from('submissions').select('*').eq('session_id', SESSION_ID).order('votes', {ascending:false});
+  submissions = data || [];
+  renderAllSubmissions();
+}
+
+// ── Dashboard ──
+function renderDashboard() {
+  const totalVotes = submissions.reduce((a,s) => a + (s.votes||0), 0);
+  const used = invites.filter(i => i.used).length;
+  document.getElementById('statInvites').textContent = invites.length;
+  document.getElementById('statUsed').textContent = used;
+  document.getElementById('statSubs').textContent = submissions.length;
+  document.getElementById('statVotes').textContent = totalVotes;
+
+  const el = document.getElementById('dashSubmissions');
+  if (!submissions.length) { el.innerHTML = '<div style="padding:2rem;text-align:center;font-size:0.65rem;color:var(--mist)">No submissions yet.</div>'; return; }
+  el.innerHTML = submissions.slice(0,8).map(s => submissionRow(s)).join('');
+}
+
+// ── Invites ──
+function renderInviteList() {
+  const el = document.getElementById('inviteList');
+  if (!invites.length) { el.innerHTML = '<div style="padding:2rem;text-align:center;font-size:0.65rem;color:var(--mist)">No invites yet.</div>'; return; }
+  el.innerHTML = invites.map(i => `
+    <div class="table-row invite-cols">
+      <span style="font-size:0.72rem">${esc(i.email)}</span>
+      <span style="font-size:0.68rem;color:var(--mist)">${esc(i.name||'—')}</span>
+      <span style="font-size:0.62rem;color:rgba(138,154,170,0.6)">${timeAgo(i.created_at)}</span>
+      <span><span class="badge ${i.used?'badge-used':'badge-unused'}">${i.used?'Used':'Pending'}</span></span>
+      <span><button class="action-btn del" onclick="removeInvite('${i.id}')">Remove</button></span>
+    </div>`).join('');
+}
+
+async function addInvite() {
+  const email = document.getElementById('inviteEmail').value.trim().toLowerCase();
+  const name  = document.getElementById('inviteName').value.trim();
+  if (!email) { showToast('Enter an email', 'err'); return; }
+  const { error } = await sb.from('invites').insert({ email, name, session_id: SESSION_ID, used: false });
+  if (error) { showToast(error.message, 'err'); return; }
+  document.getElementById('inviteEmail').value = '';
+  document.getElementById('inviteName').value = '';
+  showToast(`${email} added`, 'ok');
+  await loadInvites();
+}
+
+async function bulkInvite() {
+  const raw = document.getElementById('bulkEmails').value.trim();
+  if (!raw) return;
+  const emails = raw.split('\n').map(e => e.trim().toLowerCase()).filter(e => e && e.includes('@'));
+  if (!emails.length) { showToast('No valid emails found', 'err'); return; }
+  const rows = emails.map(email => ({ email, session_id: SESSION_ID, used: false }));
+  const { error } = await sb.from('invites').insert(rows);
+  if (error) { showToast(error.message, 'err'); return; }
+  document.getElementById('bulkEmails').value = '';
+  showToast(`${emails.length} invites added`, 'ok');
+  await loadInvites();
+}
+
+async function removeInvite(id) {
+  if (!confirm('Remove this invite?')) return;
+  await sb.from('invites').delete().eq('id', id);
+  showToast('Invite removed', 'ok');
+  await loadInvites();
+}
+
+// ── Submissions ──
+function submissionRow(s) {
+  return `<div class="table-row submit-cols">
+    <span style="font-size:0.72rem">${esc(s.author_name)}</span>
+    <span style="font-size:0.62rem;color:var(--mist)">${timeAgo(s.created_at)}</span>
+    <span style="font-size:0.62rem;color:var(--mist);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.note ? esc(s.note) : '—'}</span>
+    <span style="color:var(--gold);font-size:0.72rem">${s.votes||0}</span>
+    <span><button class="action-btn del" onclick="deleteSubmission('${s.id}')">Delete</button></span>
+  </div>`;
+}
+
+function renderAllSubmissions() {
+  const el = document.getElementById('allSubmissions');
+  if (!submissions.length) { el.innerHTML = '<div style="padding:2rem;text-align:center;font-size:0.65rem;color:var(--mist)">No submissions yet.</div>'; return; }
+  el.innerHTML = submissions.map(s => submissionRow(s)).join('');
+}
+
+async function deleteSubmission(id) {
+  if (!confirm('Delete this submission? This cannot be undone.')) return;
+  const sub = submissions.find(s => s.id === id);
+  if (sub?.video_url) {
+    const path = sub.video_url.split('/videos/')[1];
+    if (path) await sb.storage.from('videos').remove([path]);
+  }
+  await sb.from('submissions').delete().eq('id', id);
+  showToast('Submission deleted', 'ok');
+  await loadSubmissions();
+  renderDashboard();
+}
+
+async function clearAllSubmissions() {
+  if (!confirm(`Delete ALL submissions for ${SESSION_ID}? This cannot be undone.`)) return;
+  for (const s of submissions) {
+    if (s.video_url) {
+      const path = s.video_url.split('/videos/')[1];
+      if (path) await sb.storage.from('videos').remove([path]);
+    }
+  }
+  await sb.from('submissions').delete().eq('session_id', SESSION_ID);
+  showToast('All submissions deleted', 'ok');
+  await loadSubmissions();
+  renderDashboard();
+}
+
+// ── Session ──
+async function populateSessionForm() {
+  const { data } = await sb.from('sessions').select('*').eq('id', SESSION_ID).single();
+  if (!data) return;
+  document.getElementById('sessId').value = data.id || '';
+  document.getElementById('sessTitle').value = data.track_title || '';
+  document.getElementById('sessMeta').value = data.track_meta || '';
+  document.getElementById('sessDesc').value = data.description || '';
+}
+
+async function saveSession() {
+  const payload = {
+    id: document.getElementById('sessId').value.trim() || SESSION_ID,
+    track_title: document.getElementById('sessTitle').value.trim(),
+    track_meta: document.getElementById('sessMeta').value.trim(),
+    description: document.getElementById('sessDesc').value.trim(),
+  };
+  const { error } = await sb.from('sessions').upsert(payload);
+  if (error) { showToast(error.message, 'err'); return; }
+  SESSION_ID = payload.id;
+  document.getElementById('sideSessionId').textContent = SESSION_ID;
+  showToast('Session saved', 'ok');
+}
+
+// ── Audio upload ──
+function handleAudioSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  selectedAudio = file;
+  const url = URL.createObjectURL(file);
+  const preview = document.getElementById('adminAudioPreview');
+  preview.src = url;
+  document.getElementById('audioPlayerWrap').style.display = 'block';
+  document.getElementById('audioUploadBtn').style.display = 'inline-block';
+  showToast('Audio ready — click Upload to save', 'ok');
+}
+
+async function uploadAudio() {
+  if (!selectedAudio) return;
+  const btn = document.getElementById('audioUploadBtn');
+  btn.disabled = true; btn.textContent = 'Uploading…';
+  const ext = selectedAudio.name.split('.').pop();
+  const path = `audio/${SESSION_ID}.${ext}`;
+  const { error } = await sb.storage.from('audio').upload(path, selectedAudio, { upsert:true });
+  if (error) { showToast(error.message, 'err'); btn.disabled=false; btn.textContent='Upload Audio to Session'; return; }
+  const { data } = sb.storage.from('audio').getPublicUrl(path);
+  await sb.from('sessions').upsert({ id: SESSION_ID, audio_url: data.publicUrl });
+  showToast('Audio uploaded and linked to session', 'ok');
+  btn.textContent = 'Upload Audio to Session';
+  btn.disabled = false;
+}
+
+// ── Utils ──
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function timeAgo(d) {
+  const s = Math.floor((Date.now() - new Date(d))/1000);
+  if (s<60) return 'just now'; if (s<3600) return `${Math.floor(s/60)}m ago`;
+  if (s<86400) return `${Math.floor(s/3600)}h ago`; return `${Math.floor(s/86400)}d ago`;
+}
+
+// Boot
+if (sessionStorage.getItem('jf_admin')) showAdmin();
+</script>
+</body>
+</html>
