@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JazzEra — Visual Session</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --ink:#0a0804; --cream:#f5f0e8; --gold:#c9a84c;
+    --rust:#b54a2f; --slate:#2a3240; --mist:#8a9aaa;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:var(--ink); color:var(--cream);
+    font-family:'DM Mono',monospace; min-height:100vh;
+    display:flex; flex-direction:column;
+  }
+
+  body::before {
+    content:''; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:0.3;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+  }
+
+  header {
+    padding:1.5rem 2.5rem; border-bottom:1px solid rgba(201,168,76,0.15);
+    display:flex; justify-content:space-between; align-items:center;
+    position:relative; z-index:1;
+  }
+  .logo { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:900; letter-spacing:0.3em; color:var(--gold); text-transform:uppercase; text-decoration:none; }
+  .logo span { color:var(--cream); font-style:italic; font-weight:400; }
+  .back-btn {
+    font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase;
+    color:var(--mist); text-decoration:none; border:1px solid rgba(201,168,76,0.2);
+    padding:0.35rem 0.8rem; transition:all 0.2s;
+  }
+  .back-btn:hover { color:var(--gold); border-color:var(--gold); }
+
+  main {
+    flex:1; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; padding:3rem 1.5rem; position:relative; z-index:1;
+  }
+
+  .share-container { width:100%; max-width:780px; }
+
+  /* Session badge */
+  .session-badge {
+    display:flex; align-items:center; gap:0.6rem;
+    font-size:0.6rem; letter-spacing:0.25em; text-transform:uppercase;
+    color:var(--rust); margin-bottom:1.2rem;
+  }
+  .live-dot { width:6px; height:6px; border-radius:50%; background:var(--rust); animation:pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+  /* Author */
+  .share-author {
+    font-family:'Playfair Display',serif; font-size:clamp(2rem,5vw,3.5rem);
+    font-weight:900; line-height:1; margin-bottom:0.4rem;
+  }
+  .share-author em { font-style:italic; color:var(--gold); }
+
+  .share-note {
+    font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:300;
+    color:var(--mist); line-height:1.7; margin-bottom:2rem; max-width:50ch;
+  }
+
+  /* Video */
+  .video-wrap {
+    position:relative; width:100%; background:#000;
+    border:1px solid rgba(201,168,76,0.2); margin-bottom:1.5rem;
+    overflow:hidden;
+  }
+  .video-wrap::before {
+    content:''; position:absolute; top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,var(--rust),var(--gold)); z-index:2;
+  }
+  .share-video { width:100%; display:block; max-height:500px; object-fit:contain; background:#000; }
+
+  /* Audio player */
+  .audio-wrap {
+    background:rgba(201,168,76,0.04); border:1px solid rgba(201,168,76,0.2);
+    padding:1.4rem; margin-bottom:1.5rem; position:relative;
+  }
+  .audio-label {
+    font-size:0.58rem; letter-spacing:0.2em; text-transform:uppercase;
+    color:var(--mist); margin-bottom:0.8rem;
+  }
+  .track-name {
+    font-family:'Playfair Display',serif; font-size:1rem; font-style:italic;
+    margin-bottom:1rem;
+  }
+  .audio-controls { display:flex; align-items:center; gap:1rem; }
+  .play-btn {
+    width:40px; height:40px; border-radius:50%; border:1.5px solid var(--gold);
+    background:transparent; color:var(--gold); display:flex; align-items:center;
+    justify-content:center; cursor:pointer; transition:all 0.2s; flex-shrink:0;
+    font-size:0.9rem;
+  }
+  .play-btn:hover, .play-btn.on { background:var(--gold); color:var(--ink); }
+  .waveform { display:flex; align-items:center; gap:2px; height:40px; flex:1; cursor:pointer; }
+  .w-bar { flex:1; border-radius:1px; background:rgba(201,168,76,0.18); }
+  .w-bar.played { background:rgba(201,168,76,0.6); }
+  .w-bar.active { background:var(--rust); }
+  .elapsed { font-size:0.65rem; color:var(--mist); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  audio { display:none; }
+
+  /* Actions */
+  .share-actions { display:flex; gap:0.8rem; flex-wrap:wrap; margin-bottom:2rem; }
+  .primary-action {
+    padding:0.8rem 1.8rem; background:var(--gold); color:var(--ink);
+    border:none; font-family:'DM Mono',monospace; font-size:0.7rem;
+    letter-spacing:0.18em; text-transform:uppercase; cursor:pointer;
+    transition:background 0.2s; font-weight:500;
+  }
+  .primary-action:hover { background:var(--cream); }
+  .secondary-action {
+    padding:0.8rem 1.4rem; background:transparent;
+    border:1px solid rgba(201,168,76,0.3); color:var(--mist);
+    font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.18em;
+    text-transform:uppercase; cursor:pointer; transition:all 0.2s;
+  }
+  .secondary-action:hover { border-color:var(--gold); color:var(--gold); }
+
+  /* Card modal */
+  .card-modal {
+    position:fixed; inset:0; background:rgba(10,8,4,0.96); z-index:600;
+    display:flex; align-items:center; justify-content:center; padding:2rem;
+    opacity:0; pointer-events:none; transition:opacity 0.3s;
+  }
+  .card-modal.open { opacity:1; pointer-events:all; }
+  .card-modal-inner { max-width:500px; width:100%; }
+  .card-modal-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-style:italic; margin-bottom:1rem; }
+  .card-preview { width:100%; aspect-ratio:1/1; display:block; border:1px solid rgba(201,168,76,0.2); margin-bottom:1rem; }
+  .card-modal-btns { display:flex; gap:0.8rem; }
+  .card-dl-btn {
+    flex:1; padding:0.75rem; background:var(--gold); color:var(--ink);
+    border:none; font-family:'DM Mono',monospace; font-size:0.7rem;
+    letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-weight:500; transition:background 0.2s;
+  }
+  .card-dl-btn:hover { background:var(--cream); }
+  .card-close-btn {
+    padding:0.75rem 1.2rem; background:transparent;
+    border:1px solid rgba(201,168,76,0.3); color:var(--mist);
+    font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.18em;
+    text-transform:uppercase; cursor:pointer; transition:all 0.2s;
+  }
+  .card-close-btn:hover { border-color:var(--gold); color:var(--gold); }
+
+  /* Meta footer */
+  .share-meta {
+    border-top:1px solid rgba(201,168,76,0.12); padding-top:1.2rem;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;
+  }
+  .meta-votes { font-size:0.65rem; color:var(--gold); letter-spacing:0.1em; }
+  .meta-date { font-size:0.6rem; color:rgba(138,154,170,0.5); }
+  .visit-link {
+    font-size:0.62rem; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--gold); text-decoration:none; border-bottom:1px solid rgba(201,168,76,0.3);
+    padding-bottom:1px; transition:border-color 0.2s;
+  }
+  .visit-link:hover { border-color:var(--gold); }
+
+  /* Loading / error */
+  .state-screen {
+    text-align:center; padding:4rem 2rem;
+    font-family:'Cormorant Garamond',serif; font-style:italic;
+    font-size:1.2rem; color:var(--mist);
+  }
+
+  /* Toast */
+  .toast {
+    position:fixed; bottom:2rem; right:2rem; padding:0.75rem 1.4rem;
+    font-size:0.7rem; letter-spacing:0.1em;
+    transform:translateY(150%); transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1); z-index:999;
+  }
+  .toast.ok { background:var(--gold); color:var(--ink); }
+  .toast.err { background:var(--rust); color:var(--cream); }
+  .toast.show { transform:translateY(0); }
+
+  footer {
+    padding:1.5rem 2.5rem; border-top:1px solid rgba(201,168,76,0.1);
+    text-align:center; font-size:0.58rem; color:rgba(138,154,170,0.35);
+    letter-spacing:0.12em; position:relative; z-index:1;
+  }
+
+  @media(max-width:600px) {
+    header { padding:1.2rem 1.2rem; }
+    main { padding:2rem 1.2rem; }
+    .share-actions { flex-direction:column; }
+    .primary-action, .secondary-action { text-align:center; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="index.html">Jazz<span>Era</span></a>
+  <a class="back-btn" href="index.html">← All Sessions</a>
+</header>
+
+<main>
+  <div class="share-container" id="shareContainer">
+    <div class="state-screen" id="loadingState">Loading…</div>
+  </div>
+</main>
+
+<div class="card-modal" id="cardModal">
+  <div class="card-modal-inner">
+    <div class="card-modal-title" id="cardModalTitle">Your JazzEra card</div>
+    <canvas class="card-preview" id="cardCanvas" width="600" height="600"></canvas>
+    <div class="card-modal-btns">
+      <button class="card-dl-btn" onclick="downloadCard()">⬇ Download Card</button>
+      <button class="card-close-btn" onclick="document.getElementById('cardModal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>JazzEra · Invite-only Visual Sessions</footer>
+
+<script>
+const SUPABASE_URL = 'https://qqxlgygacojaugerzgiq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxeGxneWdhY29qYXVnZXJ6Z2lxIiwicm9sZSI6ImFub24iLCJpYXQiOj';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let submission = null;
+let sessionData = null;
+let playing = false;
+const BARS = 50;
+
+// Get submission ID from URL
+const params = new URLSearchParams(location.search);
+const submissionId = params.get('id');
+
+async function init() {
+  if (!submissionId) {
+    document.getElementById('loadingState').textContent = 'No submission specified.';
+    return;
+  }
+
+  const { data: sub, error } = await sb.from('submissions').select('*').eq('id', submissionId).single();
+  if (error || !sub) {
+    document.getElementById('loadingState').textContent = 'Submission not found.';
+    return;
+  }
+  submission = sub;
+
+  const { data: sess } = await sb.from('sessions').select('*').eq('id', sub.session_id).single();
+  sessionData = sess;
+
+  // Update page title
+  document.title = `${sub.author_name} — JazzEra`;
+
+  renderPage();
+}
+
+function renderPage() {
+  const sub = submission;
+  const sess = sessionData;
+  const siteUrl = location.origin + location.pathname.replace('share.html', '');
+
+  document.getElementById('shareContainer').innerHTML = `
+    <div class="session-badge">
+      <span class="live-dot"></span>
+      ${esc(sess?.id || 'JazzEra Session')}
+    </div>
+
+    <div class="share-author"><em>${esc(sub.author_name)}</em></div>
+    ${sub.note ? `<div class="share-note">${esc(sub.note)}</div>` : '<div style="margin-bottom:1.5rem"></div>'}
+
+    <div class="video-wrap">
+      <video class="share-video" id="shareVideo" src="${esc(sub.video_url)}" controls playsinline></video>
+    </div>
+
+    ${sess?.audio_url ? `
+    <div class="audio-wrap">
+      <audio id="audioEl" src="${esc(sess.audio_url)}" preload="metadata"></audio>
+      <div class="audio-label">Jazz recording — play alongside the video</div>
+      <div class="track-name">${esc(sess.track_title || 'Untitled')}</div>
+      <div class="audio-controls">
+        <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
+        <div class="waveform" id="waveform"></div>
+        <span class="elapsed" id="elapsed">0:00</span>
+      </div>
+    </div>` : ''}
+
+    <div class="share-actions">
+      <button class="primary-action" onclick="generateCard()">◈ Generate Shareable Card</button>
+      <button class="secondary-action" onclick="copyLink()">⬡ Copy Link</button>
+    </div>
+
+    <div class="share-meta">
+      <div class="meta-votes">♦ ${sub.votes || 0} votes</div>
+      <div class="meta-date">${timeAgo(sub.created_at)}</div>
+      <a class="visit-link" href="${siteUrl}">Visit JazzEra →</a>
+    </div>
+  `;
+
+  if (sess?.audio_url) {
+    buildWaveform();
+    const audio = document.getElementById('audioEl');
+    audio.addEventListener('timeupdate', () => {
+      const p = audio.currentTime / (audio.duration || 1);
+      updateWaveform(p);
+      document.getElementById('elapsed').textContent = fmt(audio.currentTime);
+    });
+    audio.addEventListener('ended', () => {
+      playing = false;
+      const btn = document.getElementById('playBtn');
+      btn.textContent = '▶'; btn.classList.remove('on');
+    });
+  }
+}
+
+function buildWaveform() {
+  const wf = document.getElementById('waveform');
+  if (!wf) return;
+  for (let i = 0; i < BARS; i++) {
+    const b = document.createElement('div');
+    b.className = 'w-bar';
+    b.style.height = (20 + Math.random() * 70) + '%';
+    wf.appendChild(b);
+  }
+  wf.addEventListener('click', e => {
+    const audio = document.getElementById('audioEl');
+    if (!audio?.duration) return;
+    const r = wf.getBoundingClientRect();
+    audio.currentTime = ((e.clientX - r.left) / r.width) * audio.duration;
+  });
+}
+
+function updateWaveform(p) {
+  const bars = document.querySelectorAll('.w-bar');
+  const idx = Math.floor(p * BARS);
+  bars.forEach((b, i) => {
+    b.className = 'w-bar' + (i < idx ? ' played' : i === idx ? ' active' : '');
+  });
+}
+
+function togglePlay() {
+  const audio = document.getElementById('audioEl');
+  const btn = document.getElementById('playBtn');
+  if (!audio) return;
+  if (playing) {
+    audio.pause(); playing = false; btn.textContent = '▶'; btn.classList.remove('on');
+  } else {
+    audio.play(); playing = true; btn.textContent = '❚❚'; btn.classList.add('on');
+  }
+}
+
+function copyLink() {
+  const url = location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url);
+    showToast('Link copied', 'ok');
+  } else {
+    prompt('Copy this link:', url);
+  }
+}
+
+function generateCard() {
+  const sub = submission;
+  const sess = sessionData;
+  const canvas = document.getElementById('cardCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = 600, H = 600;
+  canvas.width = W; canvas.height = H;
+
+  const draw = () => {
+    ctx.fillStyle = '#0a0804';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.strokeStyle = 'rgba(201,168,76,0.4)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(24, 24, W-48, H-48);
+
+    const grad = ctx.createLinearGradient(24, 0, W-24, 0);
+    grad.addColorStop(0, '#b54a2f');
+    grad.addColorStop(1, '#c9a84c');
+    ctx.fillStyle = grad;
+    ctx.fillRect(24, 24, W-48, 3);
+
+    const vid = document.getElementById('shareVideo');
+    const imgY = 80, imgH = 280;
+    ctx.save();
+    ctx.globalAlpha = 0.72;
+    try { ctx.drawImage(vid, 40, imgY, W-80, imgH); } catch(e) {}
+    ctx.restore();
+
+    const imgGrad = ctx.createLinearGradient(0, imgY, 0, imgY+imgH);
+    imgGrad.addColorStop(0, 'transparent');
+    imgGrad.addColorStop(1, 'rgba(10,8,4,0.9)');
+    ctx.fillStyle = imgGrad;
+    ctx.fillRect(40, imgY, W-80, imgH);
+
+    ctx.fillStyle = '#b54a2f';
+    ctx.font = '500 13px monospace';
+    ctx.fillText('JAZZERA · VISUAL SESSION', 40, 64);
+
+    ctx.fillStyle = '#f5f0e8';
+    ctx.font = 'italic bold 38px Georgia, serif';
+    ctx.fillText(sub.author_name, 40, 422);
+
+    ctx.fillStyle = '#c9a84c';
+    ctx.font = '14px monospace';
+    ctx.fillText(sess?.track_title || 'JazzEra Session', 40, 452);
+
+    if (sub.note) {
+      ctx.fillStyle = '#8a9aaa';
+      ctx.font = 'italic 15px Georgia, serif';
+      const words = sub.note.split(' ');
+      let line = '', y = 490;
+      for (const word of words) {
+        const test = line + word + ' ';
+        if (ctx.measureText(test).width > W-80 && line) {
+          ctx.fillText(line.trim(), 40, y); line = word + ' '; y += 22;
+          if (y > 545) break;
+        } else { line = test; }
+      }
+      if (y <= 545) ctx.fillText(line.trim(), 40, y);
+    }
+
+    ctx.fillStyle = 'rgba(201,168,76,0.45)';
+    ctx.font = '11px monospace';
+    ctx.fillText(location.href, 40, 576);
+
+    ctx.fillStyle = 'rgba(201,168,76,0.25)';
+    ctx.fillRect(24, H-27, W-48, 1);
+  };
+
+  draw();
+  document.getElementById('cardModalTitle').textContent = `${sub.author_name}'s JazzEra card`;
+  document.getElementById('cardModal').classList.add('open');
+}
+
+function downloadCard() {
+  const canvas = document.getElementById('cardCanvas');
+  const name = submission?.author_name?.replace(/\s+/g,'_') || 'jazzera';
+  const a = document.createElement('a');
+  a.download = `jazzera_${name}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  showToast('Card downloaded', 'ok');
+}
+
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmt(s) { return `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`; }
+function timeAgo(d) {
+  const s = Math.floor((Date.now()-new Date(d))/1000);
+  if(s<60) return 'just now'; if(s<3600) return `${Math.floor(s/60)}m ago`;
+  if(s<86400) return `${Math.floor(s/3600)}h ago`; return `${Math.floor(s/86400)}d ago`;
+}
+
+init();
+</script>
+</body>
+</html>
