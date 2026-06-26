@@ -349,12 +349,18 @@
   }
 
   /* ── FOOTER ── */
-  footer {
+   footer {
     padding:2.5rem 3rem; border-top:1px solid rgba(201,168,76,0.12);
-    display:flex; justify-content:space-between; align-items:center;
+    display:flex; flex-direction:column; align-items:center; gap:1.2rem; text-align:center;
   }
+  .foot-row { display:flex; justify-content:space-between; align-items:center; width:100%; }
   .foot-logo { font-family:'Playfair Display',serif; font-weight:900; letter-spacing:0.3em; color:rgba(201,168,76,0.4); font-size:0.9rem; text-transform:uppercase; }
   .foot-copy { font-size:0.58rem; color:rgba(138,154,170,0.4); letter-spacing:0.1em; }
+  .foot-licensing {
+    font-size:0.65rem; color:rgba(138,154,170,0.6); line-height:1.9;
+    max-width:680px; border-top:1px solid rgba(201,168,76,0.1); padding-top:1.2rem;
+    font-family:'Cormorant Garamond',serif; font-style:italic;
+  }{ font-size:0.58rem; color:rgba(138,154,170,0.4); letter-spacing:0.1em; }
 
   /* ── MISC ── */
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
@@ -480,8 +486,13 @@
   </section>
 
   <footer>
-    <div class="foot-logo">JazzEra</div>
-    <div class="foot-copy">Invite-only · Visual Archive · Session #014</div>
+    <div class="foot-row">
+      <div class="foot-logo">JazzEra</div>
+      <div class="foot-copy">Invite-only · Visual Archive · Session #014</div>
+    </div>
+    <div class="foot-licensing">
+      All instrumental compositions on JazzEra are released free under Creative Commons licensing and may be used, shared, and performed without restriction. Songs where both music and lyrics are AI-generated carry the same freedom. Where human lyrics are involved, all rights are reserved.*
+    </div>
   </footer>
 </div>
 
