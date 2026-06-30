@@ -109,107 +109,62 @@
   }
   .logout-btn:hover { color:var(--mist); }
 
-  /* ── HERO / PLAYER ── */
-  .session-hero {
-    padding:4rem 3rem 3rem;
-    display:grid; grid-template-columns:1.1fr 0.9fr; gap:4rem; align-items:start;
-    border-bottom:1px solid rgba(201,168,76,0.12);
+  /* ── NEW HERO ── */
+  .hero-v2 {
+    position: relative;
+    min-height: 70vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 4rem 2rem;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(201,168,76,0.12);
   }
-
-  .session-badge {
-    display:inline-flex; align-items:center; gap:0.6rem;
-    font-size:0.6rem; letter-spacing:0.25em; text-transform:uppercase;
-    color:var(--rust); margin-bottom:1.5rem;
+  .hero-bg-cycle { position: absolute; inset: 0; z-index: 0; }
+  .hero-bg-img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+    opacity: 0; transition: opacity 1.8s ease;
+    filter: saturate(0.55) brightness(0.42) contrast(1.05);
   }
-  .live-dot { width:6px; height:6px; border-radius:50%; background:var(--rust); animation:pulse 1.6s ease-in-out infinite; }
-  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
-
-  .session-title {
-    font-family:'Playfair Display',serif; font-size:clamp(2.5rem,4vw,4.5rem);
-    font-weight:900; line-height:0.95; margin-bottom:1.2rem;
+  .hero-bg-img.active { opacity: 1; }
+  .hero-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,8,4,0.55) 0%, rgba(10,8,4,0.75) 55%, rgba(10,8,4,0.92) 100%);
+    z-index: 1;
   }
-  .session-title em { font-style:italic; color:var(--gold); display:block; }
-
-  .session-desc {
-    font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:300;
-    color:var(--mist); line-height:1.75; max-width:42ch; margin-bottom:2.5rem;
+  .hero-content { position: relative; z-index: 2; max-width: 640px; margin: 0 auto; }
+  .hero-statement {
+    font-family: 'Playfair Display', serif; font-weight: 900; font-style: italic;
+    font-size: clamp(1.6rem, 4.2vw, 2.6rem); color: var(--cream); line-height: 1.25;
+    margin-bottom: 1rem;
   }
-
-  /* Player */
-  .player {
-    background:rgba(201,168,76,0.04); border:1px solid rgba(201,168,76,0.22);
-    padding:1.8rem; position:relative; overflow:hidden;
+  .hero-statement em { color: var(--gold); font-style: italic; }
+  .hero-submissions-note {
+    font-family: 'DM Mono', monospace; font-size: 0.62rem; letter-spacing: 0.08em;
+    color: rgba(245,240,232,0.55); line-height: 1.8; max-width: 460px; margin: 0 auto 2.6rem;
   }
-  .player::before { content:''; position:absolute; top:0;left:0;right:0;height:2px; background:linear-gradient(90deg,var(--rust),var(--gold)); }
-
-  .track-header { display:flex; justify-content:space-between; margin-bottom:1.4rem; }
-  .track-title { font-family:'Playfair Display',serif; font-size:1.05rem; font-weight:700; font-style:italic; }
-  .track-key { font-size:0.6rem; color:var(--mist); letter-spacing:0.12em; text-transform:uppercase; margin-top:0.25rem; }
-  .track-time { font-size:0.68rem; color:var(--gold); font-variant-numeric:tabular-nums; align-self:flex-start; }
-
-  .waveform { display:flex; align-items:center; gap:2px; height:52px; cursor:pointer; margin-bottom:1.2rem; }
-  .w-bar { flex:1; border-radius:1px; background:rgba(201,168,76,0.18); transition:background 0.08s; }
-  .w-bar.played { background:rgba(201,168,76,0.6); }
-  .w-bar.active { background:var(--rust); }
-
-  .player-row { display:flex; align-items:center; gap:1.2rem; }
-  .play-btn {
-    width:42px; height:42px; border-radius:50%; border:1.5px solid var(--gold);
-    background:transparent; color:var(--gold); display:flex; align-items:center;
-    justify-content:center; cursor:pointer; transition:all 0.2s; flex-shrink:0; font-size:0.95rem;
+  .hero-player {
+    background: rgba(10,8,4,0.55); border: 1px solid rgba(201,168,76,0.3);
+    backdrop-filter: blur(6px); padding: 1.4rem 1.6rem; max-width: 420px;
+    margin: 0 auto; text-align: left;
   }
-  .play-btn:hover, .play-btn.on { background:var(--gold); color:var(--ink); }
-  .elapsed { font-size:0.68rem; color:var(--mist); font-variant-numeric:tabular-nums; }
-  .sub-count { margin-left:auto; font-size:0.62rem; color:var(--rust); letter-spacing:0.1em; text-transform:uppercase; }
-
-  audio { display:none; }
-
-  /* Right side: submit panel */
-  .submit-column { padding-top:0.5rem; }
-  .submit-heading {
-    font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; font-style:italic;
-    line-height:1.1; margin-bottom:0.6rem;
+  .hero-player::before {
+    content:''; display:block; height:2px; margin:-1.4rem -1.6rem 1.2rem;
+    background:linear-gradient(90deg,var(--rust),var(--gold));
   }
-  .submit-heading em { color:var(--gold); }
-  .submit-note { font-size:0.68rem; color:var(--mist); line-height:1.7; margin-bottom:1.8rem; }
-
-  .upload-zone {
-    border:1.5px dashed rgba(201,168,76,0.3); padding:2.5rem 1.5rem;
-    text-align:center; cursor:pointer; transition:all 0.3s; margin-bottom:1.2rem; position:relative;
+  .hero-track-title { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 700; font-size: 1rem; color: var(--cream); margin-bottom: 0.2rem; }
+  .hero-track-meta { font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+  .hero-player-row { display: flex; align-items: center; gap: 1rem; }
+  .hero-play-btn {
+    width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--gold);
+    background: transparent; color: var(--gold); display: flex; align-items: center;
+    justify-content: center; cursor: pointer; transition: all 0.2s; flex-shrink: 0; font-size: 0.85rem;
   }
-  .upload-zone:hover { border-color:var(--gold); background:rgba(201,168,76,0.03); }
-  .upload-zone.over { border-color:var(--rust); background:rgba(181,74,47,0.05); }
-  .upload-icon { font-size:1.8rem; opacity:0.45; margin-bottom:0.6rem; display:block; }
-  .upload-main { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1rem; color:var(--mist); margin-bottom:0.3rem; }
-  .upload-small { font-size:0.58rem; letter-spacing:0.15em; text-transform:uppercase; color:rgba(138,154,170,0.5); }
-  #videoInput { display:none; }
-
-  .video-preview-wrap { margin-bottom:1.2rem; display:none; position:relative; }
-  .video-preview-wrap.visible { display:block; }
-  .video-preview { width:100%; max-height:220px; object-fit:cover; border:1px solid rgba(201,168,76,0.2); display:block; }
-  .preview-clear {
-    position:absolute; top:0.5rem; right:0.5rem; background:rgba(10,8,4,0.85);
-    border:1px solid rgba(201,168,76,0.3); color:var(--gold); padding:0.2rem 0.5rem;
-    font-size:0.6rem; cursor:pointer; font-family:'DM Mono',monospace; letter-spacing:0.1em;
-  }
-  .preview-clear:hover { background:var(--rust); color:var(--cream); border-color:var(--rust); }
-
-  .field-row { margin-bottom:1rem; }
-  .char-count { font-size:0.58rem; color:rgba(138,154,170,0.4); text-align:right; margin-top:0.2rem; }
-
-  .submit-btn {
-    width:100%; padding:0.95rem; background:var(--gold); color:var(--ink);
-    border:none; font-family:'DM Mono',monospace; font-size:0.72rem;
-    letter-spacing:0.2em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; font-weight:500;
-  }
-  .submit-btn:hover { background:var(--cream); }
-  .submit-btn:disabled { background:rgba(201,168,76,0.3); color:rgba(10,8,4,0.5); cursor:not-allowed; }
-
-  .progress-bar-wrap { margin-top:0.8rem; display:none; }
-  .progress-bar-wrap.visible { display:block; }
-  .progress-track { height:2px; background:rgba(201,168,76,0.15); width:100%; }
-  .progress-fill { height:100%; background:var(--gold); width:0%; transition:width 0.3s; }
-  .progress-label { font-size:0.6rem; color:var(--mist); margin-top:0.4rem; letter-spacing:0.1em; }
+  .hero-play-btn:hover, .hero-play-btn.on { background: var(--gold); color: var(--ink); }
+  .hero-elapsed { font-size: 0.62rem; color: var(--mist); font-variant-numeric: tabular-nums; }
+  .hero-city-label { margin-left: auto; font-size: 0.56rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(245,240,232,0.4); }
 
   /* ── GALLERY ── */
   .gallery-section { padding:4rem 3rem; }
@@ -411,62 +366,24 @@
     </div>
   </header>
 
-  <!-- Player + Submit -->
-  <section class="session-hero">
-    <div class="fade-up">
-      <div class="session-badge"><span class="live-dot"></span> Open Session #014</div>
-      <h1 class="session-title">Blue at<br><em>Half Past</em><br>Three</h1>
-      <p class="session-desc" id="sessionDesc">An original AI-generated jazz ballad. Listen carefully — then upload a short video that answers it visually. All interpretations are valid.</p>
+  <!-- New Hero -->
+  <section class="hero-v2">
+    <div class="hero-bg-cycle" id="heroBgCycle"></div>
+    <div class="hero-scrim"></div>
 
-      <div class="player">
-        <audio id="audioEl" preload="metadata"></audio>
-        <div class="track-header">
-          <div>
-            <div class="track-title" id="trackTitle">Blue at Half Past Three</div>
-            <div class="track-key" id="trackKey">AI-generated · 4/4 Ballad · 120bpm</div>
-          </div>
-          <div class="track-time" id="trackTime">0:00 / —:——</div>
+    <div class="hero-content">
+      <h1 class="hero-statement">Jazz — created by <em>AI</em>, but interpreted by <em>you</em>.</h1>
+      <p class="hero-submissions-note">We cannot at this time accept music submissions, AI or human, but hope to be open to this in the future.</p>
+
+      <div class="hero-player">
+        <audio id="heroAudioEl" preload="metadata" src="https://qqxlgygacojaugerzgiq.supabase.co/storage/v1/object/public/assets/Jazz%20in%20Ordinary%20Time%2026%20Copy.mp3"></audio>
+        <div class="hero-track-title">Let The Music Begin....</div>
+        <div class="hero-track-meta">AI-generated</div>
+        <div class="hero-player-row">
+          <button class="hero-play-btn" id="heroPlayBtn" onclick="toggleHeroPlay()">▶</button>
+          <span class="hero-elapsed" id="heroElapsed">0:00</span>
+          <span class="hero-city-label" id="heroCityLabel">Paris</span>
         </div>
-        <div class="waveform" id="waveform"></div>
-        <div class="player-row">
-          <button class="play-btn" id="playBtn" onclick="togglePlay()">▶</button>
-          <span class="elapsed" id="elapsed">0:00</span>
-          <span class="sub-count" id="subCount">— submissions</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Submit -->
-    <div class="submit-column fade-up" style="animation-delay:0.2s">
-      <h2 class="submit-heading">What does it<br>look like <em>to you?</em></h2>
-      <p class="submit-note">Upload a short video — up to 2 minutes. Film, found footage, abstract, documentary — anything the music suggests. MP4 or MOV preferred.</p>
-
-      <input type="file" id="videoInput" accept="video/*" onchange="handleFileSelect(this)">
-
-      <div class="video-preview-wrap" id="previewWrap">
-        <video class="video-preview" id="videoPreview" muted playsinline controls></video>
-        <button class="preview-clear" onclick="clearVideo()">✕ Remove</button>
-      </div>
-
-      <div class="upload-zone" id="uploadZone"
-           onclick="document.getElementById('videoInput').click()"
-           ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
-        <span class="upload-icon">⬡</span>
-        <div class="upload-main">Drop your video here</div>
-        <div class="upload-small">Any video format · iPhone & Android · up to 500MB · max 2 minutes</div>
-      </div>
-
-      <div class="field-row">
-        <label class="field-label" for="noteField">A note about your interpretation (optional)</label>
-        <input class="field-input" id="noteField" type="text" maxlength="140" placeholder="What did you hear?" oninput="updateChar()">
-        <div class="char-count"><span id="charCount">0</span> / 140</div>
-      </div>
-
-      <button class="submit-btn" id="submitBtn" onclick="submitVideo()" disabled>Upload to Session</button>
-
-      <div class="progress-bar-wrap" id="progressWrap">
-        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-        <div class="progress-label" id="progressLabel">Preparing upload…</div>
       </div>
     </div>
   </section>
@@ -1031,7 +948,52 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.log('SW registration failed:', err));
   });
 }
+// ── New Hero: cities + player ──
+const heroCities = [
+  { name: 'Paris', color: '#2a3240' },
+  { name: 'Vienna', color: '#3a2a20' },
+  { name: 'Prague', color: '#1a2a30' },
+  { name: 'Berlin', color: '#252525' },
+  { name: 'London', color: '#1a1a2a' },
+  { name: 'Dublin', color: '#2a3a2a' },
+  { name: 'Rome', color: '#3a2520' },
+  { name: 'Warsaw', color: '#2a2a3a' },
+  { name: 'Belgrade', color: '#201820' },
+  { name: 'Stockholm', color: '#1a2530' },
+  { name: 'Copenhagen', color: '#251a25' },
+];
+const heroBgCycle = document.getElementById('heroBgCycle');
+heroCities.forEach((city, i) => {
+  const div = document.createElement('div');
+  div.className = 'hero-bg-img' + (i === 0 ? ' active' : '');
+  div.style.background = `linear-gradient(135deg, ${city.color}, #0a0804)`;
+  heroBgCycle.appendChild(div);
+});
+let heroCityIndex = 0;
+setInterval(() => {
+  const imgs = document.querySelectorAll('.hero-bg-img');
+  imgs[heroCityIndex].classList.remove('active');
+  heroCityIndex = (heroCityIndex + 1) % imgs.length;
+  imgs[heroCityIndex].classList.add('active');
+  document.getElementById('heroCityLabel').textContent = heroCities[heroCityIndex].name;
+}, 5000);
 
+let heroPlaying = false;
+const heroAudioEl = document.getElementById('heroAudioEl');
+function toggleHeroPlay() {
+  const btn = document.getElementById('heroPlayBtn');
+  if (heroPlaying) { heroAudioEl.pause(); heroPlaying = false; btn.textContent = '▶'; btn.classList.remove('on'); }
+  else { heroAudioEl.play(); heroPlaying = true; btn.textContent = '❚❚'; btn.classList.add('on'); }
+}
+heroAudioEl.addEventListener('timeupdate', () => {
+  const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+  document.getElementById('heroElapsed').textContent = fmt(heroAudioEl.currentTime);
+});
+heroAudioEl.addEventListener('ended', () => {
+  heroPlaying = false;
+  document.getElementById('heroPlayBtn').textContent = '▶';
+  document.getElementById('heroPlayBtn').classList.remove('on');
+});
 // ── Boot ──
 window.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox')}); });
 
