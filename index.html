@@ -122,13 +122,10 @@
     overflow: hidden;
     border-bottom: 1px solid rgba(201,168,76,0.12);
   }
-  .hero-bg-cycle { position: absolute; inset: 0; z-index: 0; }
-  .hero-bg-img {
-    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-    opacity: 0; transition: opacity 1.8s ease;
-    filter: saturate(0.55) brightness(0.42) contrast(1.05);
+ .hero-video-bg {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; filter: brightness(0.4) saturate(0.65); z-index: 0;
   }
-  .hero-bg-img.active { opacity: 1; }
   .hero-scrim {
     position: absolute; inset: 0;
     background: linear-gradient(180deg, rgba(10,8,4,0.55) 0%, rgba(10,8,4,0.75) 55%, rgba(10,8,4,0.92) 100%);
@@ -164,7 +161,7 @@
   }
   .hero-play-btn:hover, .hero-play-btn.on { background: var(--gold); color: var(--ink); }
   .hero-elapsed { font-size: 0.62rem; color: var(--mist); font-variant-numeric: tabular-nums; }
-  .hero-city-label { margin-left: auto; font-size: 0.56rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(245,240,232,0.4); }
+  
 
   /* ── GALLERY ── */
   .gallery-section { padding:4rem 3rem; }
@@ -368,7 +365,9 @@
 
   <!-- New Hero -->
   <section class="hero-v2">
-    <div class="hero-bg-cycle" id="heroBgCycle"></div>
+<video class="hero-video-bg" autoplay muted loop playsinline>
+    <source src="https://qqxlgygacojaugerzgiq.supabase.co/storage/v1/object/public/videos/session_014/1781438613681_59hsroszd4.mp4" type="video/mp4">
+  </video>
     <div class="hero-scrim"></div>
 
     <div class="hero-content">
@@ -382,7 +381,7 @@
         <div class="hero-player-row">
           <button class="hero-play-btn" id="heroPlayBtn" onclick="toggleHeroPlay()">▶</button>
           <span class="hero-elapsed" id="heroElapsed">0:00</span>
-          <span class="hero-city-label" id="heroCityLabel">Paris</span>
+         
         </div>
       </div>
     </div>
@@ -948,52 +947,27 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.log('SW registration failed:', err));
   });
 }
-// ── New Hero: cities + player ──
-const heroCities = [
-  { name: 'Paris', color: '#2a3240' },
-  { name: 'Vienna', color: '#3a2a20' },
-  { name: 'Prague', color: '#1a2a30' },
-  { name: 'Berlin', color: '#252525' },
-  { name: 'London', color: '#1a1a2a' },
-  { name: 'Dublin', color: '#2a3a2a' },
-  { name: 'Rome', color: '#3a2520' },
-  { name: 'Warsaw', color: '#2a2a3a' },
-  { name: 'Belgrade', color: '#201820' },
-  { name: 'Stockholm', color: '#1a2530' },
-  { name: 'Copenhagen', color: '#251a25' },
-];
-const heroBgCycle = document.getElementById('heroBgCycle');
-heroCities.forEach((city, i) => {
-  const div = document.createElement('div');
-  div.className = 'hero-bg-img' + (i === 0 ? ' active' : '');
-  div.style.background = `linear-gradient(135deg, ${city.color}, #0a0804)`;
-  heroBgCycle.appendChild(div);
-});
-let heroCityIndex = 0;
-setInterval(() => {
-  const imgs = document.querySelectorAll('.hero-bg-img');
-  imgs[heroCityIndex].classList.remove('active');
-  heroCityIndex = (heroCityIndex + 1) % imgs.length;
-  imgs[heroCityIndex].classList.add('active');
-  document.getElementById('heroCityLabel').textContent = heroCities[heroCityIndex].name;
-}, 5000);
 
-let heroPlaying = false;
-const heroAudioEl = document.getElementById('heroAudioEl');
-function toggleHeroPlay() {
-  const btn = document.getElementById('heroPlayBtn');
-  if (heroPlaying) { heroAudioEl.pause(); heroPlaying = false; btn.textContent = '▶'; btn.classList.remove('on'); }
-  else { heroAudioEl.play(); heroPlaying = true; btn.textContent = '❚❚'; btn.classList.add('on'); }
-}
-heroAudioEl.addEventListener('timeupdate', () => {
-  const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
-  document.getElementById('heroElapsed').textContent = fmt(heroAudioEl.currentTime);
-});
-heroAudioEl.addEventListener('ended', () => {
-  heroPlaying = false;
-  document.getElementById('heroPlayBtn').textContent = '▶';
-  document.getElementById('heroPlayBtn').classList.remove('on');
-});
+// ── Hero player ──
+  let heroPlaying = false;
+  const heroAudioEl = document.getElementById('heroAudioEl');
+  function toggleHeroPlay() {
+    const btn = document.getElementById('heroPlayBtn');
+    if (heroPlaying) {
+      heroAudioEl.pause(); heroPlaying = false; btn.textContent = '▶'; btn.classList.remove('on');
+    } else {
+      heroAudioEl.play(); heroPlaying = true; btn.textContent = '❚❚'; btn.classList.add('on');
+    }
+  }
+  heroAudioEl.addEventListener('timeupdate', () => {
+    const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
+    document.getElementById('heroElapsed').textContent = fmt(heroAudioEl.currentTime);
+  });
+  heroAudioEl.addEventListener('ended', () => {
+    heroPlaying = false;
+    document.getElementById('heroPlayBtn').textContent = '▶';
+    document.getElementById('heroPlayBtn').classList.remove('on');
+  });
 // ── Boot ──
 window.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox')}); });
 
