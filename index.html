@@ -170,7 +170,22 @@
   .hero-play-btn:hover, .hero-play-btn.on { background: var(--gold); color: var(--ink); }
   .hero-elapsed { font-size: 0.62rem; color: var(--mist); font-variant-numeric: tabular-nums; }
   
+/* ── UPLOAD SECTION ── */
+  .upload-section {
+    padding: 4rem 3rem;
+    border-bottom: 1px solid rgba(201,168,76,0.12);
+  }
+  .upload-section-heading {
+    font-family: 'Playfair Display', serif; font-size: 1.8rem; font-style: italic;
+    margin-bottom: 0.6rem; color: var(--cream);
+  }
+  .upload-section-note {
+    font-size: 0.68rem; color: var(--mist); line-height: 1.7; margin-bottom: 2rem;
+  }
 
+  @media(max-width:600px) {
+    .upload-section { padding: 3rem 1.5rem; }
+  }
   /* ── GALLERY ── */
   .gallery-section { padding:4rem 3rem; }
   .gallery-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2.5rem; }
@@ -457,12 +472,44 @@
       </div>
     </div>
   </section>
+<!-- Upload -->
+  <section class="upload-section">
+    <h2 class="upload-section-heading">Listen to the music and upload your response.</h2>
+    <p class="upload-section-note">Upload a short video — up to 2 minutes. Film, found footage, abstract, documentary — anything the music suggests. MP4 or MOV preferred.</p>
 
+    <input type="file" id="videoInput" accept="video/*" onchange="handleFileSelect(this)">
+
+    <div class="video-preview-wrap" id="previewWrap">
+      <video class="video-preview" id="videoPreview" muted playsinline controls></video>
+      <button class="preview-clear" onclick="clearVideo()">✕ Remove</button>
+    </div>
+
+    <div class="upload-zone" id="uploadZone"
+         onclick="document.getElementById('videoInput').click()"
+         ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+      <span class="upload-icon">⬡</span>
+      <div class="upload-main">Drop your video here</div>
+      <div class="upload-small">Any video format · iPhone & Android · up to 500MB · max 2 minutes</div>
+    </div>
+
+    <div class="field-row">
+      <label class="field-label" for="noteField">A note about your interpretation (optional)</label>
+      <input class="field-input" id="noteField" type="text" maxlength="140" placeholder="What did you hear?" oninput="updateChar()">
+      <div class="char-count"><span id="charCount">0</span> / 140</div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="submitVideo()" disabled>Upload to Session</button>
+
+    <div class="progress-bar-wrap" id="progressWrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">Preparing upload…</div>
+    </div>
+  </section>
   <!-- Gallery -->
   <section class="gallery-section">
     <div class="gallery-header">
       <div>
-        <div class="gallery-title">Session submissions</div>
+       <div class="gallery-title">Why not share?</div>
         <div class="gallery-meta" id="galleryMeta">Loading…</div>
       </div>
       <div class="sort-tabs">
