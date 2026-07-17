@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JazzEra Junction — where users meet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#14171C;
+    --ink-2:#1B1F26;
+    --brass:#C9A227;
+    --parchment:#EDE7D9;
+    --parchment-dim:#B9B3A4;
+    --teal:#3C4A4A;
+    --card-bg:#F4EFE3;
+    --card-ink:#232016;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background:var(--ink);
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(201,162,39,0.08), transparent 55%),
+      radial-gradient(ellipse at 80% 100%, rgba(60,74,74,0.25), transparent 60%);
+    color:var(--parchment);
+    font-family:'Work Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:60px;
+  }
+
+  .wrap{
+    max-width:520px;
+    margin:0 auto;
+    padding:32px 20px 0;
+  }
+
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--brass);
+    margin-bottom:10px;
+    font-weight:600;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:clamp(30px, 8vw, 40px);
+    line-height:1.08;
+    margin:0 0 6px;
+  }
+
+  h1 em{
+    font-style:italic;
+    font-weight:500;
+    color:var(--brass);
+  }
+
+  .tagline{
+    font-size:15px;
+    color:var(--parchment-dim);
+    margin:0 0 22px;
+    font-style:italic;
+    font-family:'Fraunces', serif;
+  }
+
+  .welcome{
+    background:var(--ink-2);
+    border:1px solid rgba(201,162,39,0.25);
+    border-radius:2px;
+    padding:20px 20px 22px;
+    margin-bottom:30px;
+    position:relative;
+  }
+
+  .welcome::before{
+    content:"";
+    position:absolute;
+    top:-1px; left:20px;
+    width:36px; height:3px;
+    background:var(--brass);
+  }
+
+  .welcome p{
+    margin:0 0 12px;
+    line-height:1.6;
+    font-size:15px;
+    color:var(--parchment);
+  }
+  .welcome p:last-child{margin-bottom:0;}
+
+  .status{
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    font-size:12px;
+    color:var(--parchment-dim);
+    letter-spacing:0.03em;
+    margin-top:14px;
+  }
+  .status .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--brass);
+    box-shadow:0 0 0 3px rgba(201,162,39,0.18);
+  }
+
+  .board-label{
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--parchment-dim);
+    margin:0 0 14px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .board-label::after{
+    content:"";
+    flex:1;
+    height:1px;
+    background:linear-gradient(to right, rgba(237,231,217,0.2), transparent);
+  }
+
+  .section{
+    margin-bottom:34px;
+  }
+
+  .section h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:20px;
+    color:var(--brass);
+    margin:0 0 12px;
+  }
+
+  .section p{
+    margin:0 0 12px;
+    line-height:1.65;
+    font-size:14.5px;
+    color:var(--parchment);
+  }
+  .section p:last-child{margin-bottom:0;}
+
+  .divider{
+    border:none;
+    border-top:1px solid rgba(237,231,217,0.12);
+    margin:0 0 34px;
+  }
+
+  form{
+    margin-bottom:38px;
+  }
+
+  textarea{
+    width:100%;
+    min-height:96px;
+    background:var(--ink-2);
+    border:1px solid rgba(237,231,217,0.2);
+    border-radius:2px;
+    color:var(--parchment);
+    font-family:'Work Sans', sans-serif;
+    font-size:15px;
+    padding:14px;
+    resize:vertical;
+    line-height:1.5;
+  }
+  textarea:focus{
+    outline:none;
+    border-color:var(--brass);
+    box-shadow:0 0 0 3px rgba(201,162,39,0.15);
+  }
+  textarea::placeholder{color:var(--parchment-dim);}
+
+  .form-row{
+    display:flex;
+    gap:10px;
+    margin-top:10px;
+  }
+
+  input[type=text]{
+    flex:1;
+    background:var(--ink-2);
+    border:1px solid rgba(237,231,217,0.2);
+    border-radius:2px;
+    color:var(--parchment);
+    font-family:'Work Sans', sans-serif;
+    font-size:14px;
+    padding:12px 14px;
+  }
+  input[type=text]:focus{
+    outline:none;
+    border-color:var(--brass);
+    box-shadow:0 0 0 3px rgba(201,162,39,0.15);
+  }
+  input[type=text]::placeholder{color:var(--parchment-dim);}
+
+  button{
+    background:var(--brass);
+    color:var(--ink);
+    border:none;
+    border-radius:2px;
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    padding:12px 20px;
+    cursor:pointer;
+    letter-spacing:0.02em;
+    transition:filter 0.15s ease, transform 0.15s ease;
+    white-space:nowrap;
+  }
+  button:hover{filter:brightness(1.08);}
+  button:active{transform:translateY(1px);}
+  button:disabled{opacity:0.5;cursor:default;}
+  button:focus-visible, textarea:focus-visible, input:focus-visible{
+    outline:2px solid var(--brass);
+    outline-offset:2px;
+  }
+
+  .form-note{
+    font-size:12px;
+    color:var(--parchment-dim);
+    margin-top:8px;
+  }
+
+  .board{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .pin{
+    background:var(--card-bg);
+    color:var(--card-ink);
+    border-radius:1px;
+    padding:16px 16px 14px;
+    box-shadow:0 6px 14px rgba(0,0,0,0.35);
+    position:relative;
+    font-size:14.5px;
+    line-height:1.55;
+  }
+  .pin::before{
+    content:"";
+    position:absolute;
+    top:-6px;
+    left:22px;
+    width:11px;height:11px;
+    border-radius:50%;
+    background:var(--brass);
+    box-shadow:0 2px 3px rgba(0,0,0,0.4);
+  }
+  .pin .msg{
+    margin:0 0 10px;
+    white-space:pre-wrap;
+    word-wrap:break-word;
+  }
+  .pin .meta{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:11px;
+    color:#6b6552;
+    letter-spacing:0.03em;
+    border-top:1px solid rgba(35,32,22,0.12);
+    padding-top:8px;
+  }
+  .pin .who{
+    font-weight:600;
+    color:#4a4535;
+  }
+
+  .empty{
+    text-align:center;
+    padding:36px 10px;
+    color:var(--parchment-dim);
+    font-size:14px;
+    font-style:italic;
+    font-family:'Fraunces', serif;
+    border:1px dashed rgba(237,231,217,0.2);
+  }
+
+  footer{
+    max-width:520px;
+    margin:44px auto 0;
+    padding:0 20px;
+    text-align:center;
+  }
+  footer a{
+    color:var(--parchment-dim);
+    font-size:12px;
+    text-decoration:none;
+    letter-spacing:0.05em;
+  }
+  footer a:hover{color:var(--brass);}
+
+  @media (prefers-reduced-motion: no-preference){
+    .pin{animation:settle 0.35s ease-out;}
+    @keyframes settle{
+      from{opacity:0; transform:translateY(6px) rotate(0deg);}
+      to{opacity:1; transform:translateY(0) rotate(var(--tilt, -0.6deg));}
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <video autoplay muted playsinline loop width="160" style="display:block;margin:0 auto 1.4rem;max-width:160px;height:auto;">
+    <source src="https://qqxlgygacojaugerzgiq.supabase.co/storage/v1/object/public/assets/Logo%20clip.mp4" type="video/mp4">
+  </video>
+
+  <h1>Jazz<em>Era</em> Junction</h1>
+  <p class="tagline">— where users meet</p>
+
+  <div class="welcome">
+    <p>Welcome to JazzEra Junction, the place where our users can find and share information about what JazzEra is, does and aspires to be.</p>
+    <p>First and most important, JazzEra has only one agenda: to help people discover and enjoy jazz.</p>
+    <button type="button" id="listen-btn" style="margin-top:6px;background:transparent;border:1px solid var(--brass);color:var(--brass);">🔊 Listen to this page</button>
+  </div>
+
+  <div id="tts-content">
+  <div class="section">
+    <h2>A brief history of the project</h2>
+    <p>Jim Green, a UK based writer, created JazzEra from scratch with the help of agentic AI. He had no background in technology but, as someone whose work had been scraped for LLMs, he was curious as to what all the fuss was about.</p>
+    <p>He had written many books over many years — textbooks, travel, humour, even a Welsh Quiz Book — but also several novels: a crime series based on a central character, Jimmy Costello, a corrupt and violent detective sergeant with the London Metropolitan police, and an historical espionage series based on fictionalised fact-based events chronicling the rise of the US Intelligence Agencies from 1802–1947. But, due to circumstances, he had to give up writing for about ten years.</p>
+    <p>When he returned to his trade it was as a playwright, with his adaptation of a new translation of Aeschylus's tragedy Prometheus Bound performed at the Cecil Hepworth Playhouse, Surrey, England in 2024. Then he started work on a musical, '58, set in 1958 when Jim was 14 — what a time to be setting out as a teenager! He finished the script and spent two years looking for musical collaboration — unsuccessfully.</p>
+    <p>Then he read an article in the New Statesman about music creation platforms. He went there and the music began to flow. Once he had the instrumentals and the songs for his musical, he decided to explore further what AI could do for him as a creative, and, as the latest "go to" thing in that world was platforms that would produce code based on text/voice prompts, he asked "Can you write code for me?" Answer: "Yes, I can — what is it you want to build?"</p>
+    <p>Jim had enjoyed jazz as a young man but it had pretty much fallen out of his life until it returned in his musical, so that's what he decided to build — a place where people could listen to jazz and respond. And JazzEra began to be built…</p>
+  </div>
+
+  <div class="section">
+    <h2>Content</h2>
+    <p>For the present all our tracks are AI generated in-house. We hope that as we develop, we will be able to accept music created by live musicians and our users. When that happens depends on how fast we grow.</p>
+    <p>Because all our music is AI generated, all our tracks are part of the Creative Commons — that means anybody can use them in any way they want: perform them, copy and share them, deploy them commercially, whatever. Soon, we will ask (a request, not a condition) that any use acknowledges the original source, but that's down the line — because, at the moment, we're more interested in getting the music out there than terms and conditions. They will have to come, but for now, let the music play.</p>
+  </div>
+
+  <div class="section">
+    <h2>Developers and partners</h2>
+    <p>Jazz is both universal and local — jazz in the UK is the same as, but different from, jazz in the Middle East. Anyone who listens to jazz knows what we mean. Very soon, if JazzEra finds a user base in the UK or other English-speaking countries, we'd like to find partners and developers who can bring it to other countries. If that interests you, please get in touch. If you're a JazzEra user who wants to contribute to how we develop, then please get in touch with your ideas, criticisms, suggestions, or whatever.</p>
+  </div>
+
+  <div class="section">
+    <h2>Contributors and performers</h2>
+    <p>If you contribute by downloading a video, then the whole result belongs to you — the track is Creative Commons, the video is yours (or has the restrictions which applied when you created it). What you do with it is your business. If you are a bit creative and can sing, then by all means take any track we publish and turn it into a song — again, the result will be yours. If you are a performer and want to play any of our tracks, fine, go ahead — no acknowledgements and certainly no payments needed.</p>
+  </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="board-label">Contact us</div>
+
+  <form id="contact-form">
+    <input type="text" id="contact-name" placeholder="Name" required style="margin-bottom:10px;width:100%;">
+    <input type="email" id="contact-email" placeholder="Email" required style="margin-bottom:10px;width:100%;">
+    <textarea id="contact-message" placeholder="Your message" required></textarea>
+    <div class="form-row">
+      <button type="submit" id="contact-submit" style="width:100%;">Send</button>
+    </div>
+    <div class="form-note">Sent privately — only the JazzEra team sees this.</div>
+  </form>
+
+  <hr class="divider">
+
+  <div class="board-label">Pin a message</div>
+
+  <form id="pin-form">
+    <textarea id="pin-message" placeholder="What have you found? Good, bad, or just an idea..." required></textarea>
+    <div class="form-row">
+      <input type="text" id="pin-name" placeholder="Name (optional)" maxlength="40">
+      <button type="submit" id="pin-submit">Pin it</button>
+    </div>
+    <div class="form-note">Visible to everyone who visits the Junction.</div>
+  </form>
+
+  <div class="board-label">On the board</div>
+
+  <div class="board" id="board">
+    <div class="empty">Nothing pinned yet — be the first.</div>
+  </div>
+</div>
+
+<footer>
+  <a href="#" id="back-link">&larr; Back to JazzEra</a>
+</footer>
+
+<script type="module">
+  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+  // ---- CONFIGURE THESE TWO VALUES ----
+  const SUPABASE_URL = 'https://qqxlgygacojaugerzgiq.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxeGxneWdhY29qYXVnZXJ6Z2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjExMDYsImV4cCI6MjA5MzYzNzEwNn0.AMBwsXrnTL02FY0T7Da6pJfKGVU3_AfA0Ce851CTog4';
+  // -------------------------------------
+
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const form = document.getElementById('pin-form');
+  const messageInput = document.getElementById('pin-message');
+  const nameInput = document.getElementById('pin-name');
+  const submitBtn = document.getElementById('pin-submit');
+  const board = document.getElementById('board');
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function timeAgo(dateStr){
+    const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+    return Math.floor(diff/86400) + 'd ago';
+  }
+
+  function renderPins(rows){
+    if (!rows || rows.length === 0){
+      board.innerHTML = '<div class="empty">Nothing pinned yet — be the first.</div>';
+      return;
+    }
+    board.innerHTML = rows.map((row, i) => {
+      const tilt = (i % 2 === 0 ? -1 : 1) * (0.4 + (i % 3) * 0.3);
+      const who = row.author_name && row.author_name.trim() ? escapeHtml(row.author_name.trim()) : 'Anonymous';
+      return `<div class="pin" style="--tilt:${tilt}deg">
+        <p class="msg">${escapeHtml(row.message)}</p>
+        <div class="meta"><span class="who">${who}</span><span>${timeAgo(row.created_at)}</span></div>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadPins(){
+    const { data, error } = await supabase
+      .from('junction_messages')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    if (error){
+      console.error(error);
+      board.innerHTML = '<div class="empty">Couldn\'t load the board right now.</div>';
+      return;
+    }
+    renderPins(data);
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+    if (!message) return;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Pinning...';
+
+    const { error } = await supabase.from('junction_messages').insert({
+      message: message,
+      author_name: nameInput.value.trim() || null
+    });
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Pin it';
+
+    if (error){
+      console.error(error);
+      alert('Something went wrong pinning your message. Please try again.');
+      return;
+    }
+
+    messageInput.value = '';
+    nameInput.value = '';
+    loadPins();
+  });
+
+  document.getElementById('back-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = 'index.html';
+  });
+
+  const contactForm = document.getElementById('contact-form');
+  const contactSubmit = document.getElementById('contact-submit');
+
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('contact-name').value.trim();
+    const email = document.getElementById('contact-email').value.trim();
+    const message = document.getElementById('contact-message').value.trim();
+    if (!name || !email || !message) return;
+
+    contactSubmit.disabled = true;
+    contactSubmit.textContent = 'Sending...';
+
+    const { error } = await supabase.from('junction_contact').insert({
+      name: name,
+      email: email,
+      message: message
+    });
+
+    contactSubmit.disabled = false;
+    contactSubmit.textContent = 'Send';
+
+    if (error){
+      console.error(error);
+      alert('Something went wrong sending your message. Please try again.');
+      return;
+    }
+
+    contactForm.reset();
+    alert('Thanks — your message has been sent.');
+  });
+
+  loadPins();
+
+  // ---- Listen to this page (browser text-to-speech) ----
+  const listenBtn = document.getElementById('listen-btn');
+  let speaking = false;
+
+  function getReadableText(){
+    const welcomeParas = document.querySelectorAll('.welcome p');
+    const contentParas = document.querySelectorAll('#tts-content h2, #tts-content p');
+    let parts = [];
+    welcomeParas.forEach(p => parts.push(p.textContent));
+    contentParas.forEach(el => parts.push(el.textContent));
+    return parts.join('. ');
+  }
+
+  listenBtn.addEventListener('click', () => {
+    if (!('speechSynthesis' in window)){
+      alert('Sorry, your browser doesn\'t support reading pages aloud.');
+      return;
+    }
+    if (speaking){
+      window.speechSynthesis.cancel();
+      speaking = false;
+      listenBtn.textContent = '🔊 Listen to this page';
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(getReadableText());
+    utterance.rate = 0.95;
+    utterance.onend = () => {
+      speaking = false;
+      listenBtn.textContent = '🔊 Listen to this page';
+    };
+    window.speechSynthesis.speak(utterance);
+    speaking = true;
+    listenBtn.textContent = '⏹ Stop reading';
+  });
+</script>
+
+</body>
+</html>
