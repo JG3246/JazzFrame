@@ -99,6 +99,11 @@
   .logo span { color:var(--cream); font-style:italic; font-weight:400; }
 
   .header-right { display:flex; align-items:center; gap:2rem; }
+  .junction-link {
+    font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--mist); text-decoration:none; transition:color 0.2s;
+  }
+  .junction-link:hover { color:var(--gold); }
   .invited-tag {
     font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase;
     color:var(--rust); border:1px solid rgba(181,74,47,0.35); padding:0.3rem 0.7rem;
@@ -399,6 +404,13 @@
     max-width:680px; border-top:1px solid rgba(201,168,76,0.1); padding-top:1.2rem;
     font-family:'Cormorant Garamond',serif; font-style:italic;
   }
+  .junction-strip {
+    display:block; width:100%; padding:1rem 1.5rem; text-align:center;
+    background:rgba(201,168,76,0.06); border-top:1px solid rgba(201,168,76,0.18);
+    color:var(--mist); font-size:0.68rem; letter-spacing:0.05em;
+    text-decoration:none; transition:background 0.2s, color 0.2s;
+  }
+  .junction-strip:hover { background:rgba(201,168,76,0.12); color:var(--gold); }
 
   /* ── MISC ── */
   @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
@@ -443,6 +455,7 @@
   <header>
     <div class="logo">Jazz<span>Era</span></div>
     <div class="header-right">
+      <a href="junction.html" class="junction-link">Junction</a>
       <div class="invited-tag">Invited</div>
       <div class="user-name" id="headerName"></div>
       <button class="logout-btn" onclick="logout()">Leave session</button>
@@ -594,6 +607,7 @@
       All instrumental compositions on JazzEra are released free under Creative Commons licensing and may be used, shared, and performed without restriction. Songs where both music and lyrics are AI-generated carry the same freedom. Where human lyrics are involved, all rights are reserved.*
     </div>
   </footer>
+  <a href="junction.html" class="junction-strip">Junction - information for users, developers, partners and a place to leave ideas &amp; feedback</a>
 </div>
 
 <!-- Card Generator Modal -->
