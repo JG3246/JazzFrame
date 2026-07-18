@@ -317,10 +317,199 @@
   <h1>Jazz<em>Era</em> Junction</h1>
   <p class="tagline">— where users meet</p>
 
+  <!-- JUNCTION-INTRO-START : talking bird narrator. Requires junction-intro-voice.mp3 in the same folder. -->
+  <div class="intro-panel" id="introPanel">
+    <div class="intro-bird" id="introBird" role="button" aria-label="Play the introduction" tabindex="0">
+      <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- perch -->
+        <line x1="18" y1="206" x2="222" y2="206" stroke="#3C4A4A" stroke-width="5" stroke-linecap="round"/>
+        <g id="birdBody">
+          <!-- tail -->
+          <polygon points="150,140 214,108 208,126 158,156" fill="#2E3B3B"/>
+          <!-- body -->
+          <ellipse cx="120" cy="150" rx="52" ry="44" fill="#3C4A4A"/>
+          <!-- belly -->
+          <path d="M84 158 q34 40 72 6 q-8 34 -40 34 q-30 0 -32 -40 Z" fill="#EDE7D9" opacity="0.85"/>
+          <!-- wing -->
+          <path d="M112 128 q46 -6 54 30 q-30 22 -60 4 q-6 -20 6 -34 Z" fill="#2E3B3B"/>
+          <path d="M126 140 q22 0 30 16 M120 152 q20 2 26 14" stroke="#C9A227" stroke-width="2" fill="none" opacity="0.55"/>
+          <!-- legs -->
+          <path d="M108 192 l0 14 M132 192 l0 14" stroke="#C9A227" stroke-width="4" stroke-linecap="round"/>
+          <g id="birdHead">
+            <!-- head -->
+            <circle cx="86" cy="96" r="34" fill="#46606B"/>
+            <!-- black bib -->
+            <path d="M60 104 q10 20 34 22 q-2 -18 -10 -26 q-14 -6 -24 4 Z" fill="#14171C"/>
+            <!-- crest hint -->
+            <path d="M78 64 q6 -10 16 -8 M88 62 q8 -8 16 -4" stroke="#C9A227" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.8"/>
+            <!-- eye -->
+            <circle cx="80" cy="90" r="8.5" fill="#EDE7D9"/>
+            <circle cx="79" cy="91" r="4.5" fill="#14171C"/>
+            <rect id="birdEyelid" x="70" y="80" width="20" height="0" rx="4" fill="#46606B"/>
+            <!-- upper beak -->
+            <polygon points="54,96 22,102 54,108" fill="#C9A227"/>
+            <!-- lower beak (hinged) -->
+            <polygon id="birdBeakLower" points="54,104 26,108 54,112" fill="#A8861F"/>
+          </g>
+        </g>
+      </svg>
+    </div>
+    <div class="intro-meta">
+      <div class="intro-label">A brief history of the project</div>
+      <div class="intro-sub">narrated — press play, the bird will tell it</div>
+      <button type="button" class="intro-play" id="introPlayBtn">&#9654;&#xFE0E; Hear the story</button>
+      <div class="intro-progress"><div class="intro-progress-fill" id="introProgress"></div></div>
+    </div>
+  </div>
+
+  <style>
+    .intro-panel{
+      display:flex; align-items:center; gap:16px;
+      background:var(--ink-2);
+      border:1px solid rgba(201,162,39,0.25);
+      border-radius:2px;
+      padding:16px;
+      margin-bottom:30px;
+    }
+    .intro-bird{ width:104px; flex:0 0 104px; cursor:pointer; }
+    .intro-bird svg{ width:100%; height:auto; display:block; }
+    .intro-meta{ flex:1; min-width:0; }
+    .intro-label{
+      font-family:'Fraunces', serif; font-weight:600;
+      font-size:17px; color:var(--parchment); line-height:1.2;
+    }
+    .intro-sub{
+      font-size:12.5px; font-style:italic; font-family:'Fraunces', serif;
+      color:var(--parchment-dim); margin:3px 0 10px;
+    }
+    .intro-play{
+      background:transparent; border:1px solid var(--brass); color:var(--brass);
+      font-family:'Work Sans', sans-serif; font-size:13px; font-weight:600;
+      letter-spacing:0.06em; padding:8px 14px; border-radius:2px; cursor:pointer;
+    }
+    .intro-play:active{ background:rgba(201,162,39,0.15); }
+    .intro-progress{
+      height:3px; background:rgba(237,231,217,0.12);
+      margin-top:12px; border-radius:2px; overflow:hidden;
+    }
+    .intro-progress-fill{
+      height:100%; width:0%; background:var(--brass); border-radius:2px;
+    }
+    #birdHead{ transform-origin:86px 110px; }
+    #birdBody{ transform-origin:120px 150px; }
+    #birdBeakLower{ transform-origin:54px 106px; }
+  </style>
+
+  <script>
+  (function(){
+    const audio = new Audio('junction-intro-voice.mp3');
+    audio.preload = 'metadata';
+    const playBtn  = document.getElementById('introPlayBtn');
+    const birdTap  = document.getElementById('introBird');
+    const beak     = document.getElementById('birdBeakLower');
+    const head     = document.getElementById('birdHead');
+    const bodyG    = document.getElementById('birdBody');
+    const eyelid   = document.getElementById('birdEyelid');
+    const progress = document.getElementById('introProgress');
+
+    let ctx = null, analyser = null, data = null, raf = null, level = 0;
+
+    function buildGraph(){
+      if (ctx) return true;
+      try{
+        const AC = window.AudioContext || window.webkitAudioContext;
+        ctx = new AC();
+        const src = ctx.createMediaElementSource(audio);
+        analyser = ctx.createAnalyser();
+        analyser.fftSize = 512;
+        src.connect(analyser);
+        analyser.connect(ctx.destination);
+        data = new Uint8Array(analyser.fftSize);
+        return true;
+      }catch(e){ ctx = null; return false; }
+    }
+
+    function amplitude(){
+      if (analyser){
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i += 4){
+          const d = (data[i] - 128) / 128;
+          sum += d * d;
+        }
+        return Math.min(1, Math.sqrt(sum / (data.length / 4)) * 3.2);
+      }
+      /* fallback flutter when Web Audio is unavailable */
+      return audio.paused ? 0 : 0.25 + 0.35 * Math.abs(Math.sin(performance.now() / 90));
+    }
+
+    function loop(){
+      const target = amplitude();
+      level += (target - level) * 0.35;
+      const open = level * 22;                       /* beak degrees */
+      beak.setAttribute('transform', 'rotate(' + open.toFixed(2) + ')');
+      head.setAttribute('transform', 'rotate(' + (-level * 2.4).toFixed(2) + ')');
+      bodyG.setAttribute('transform', 'scale(1,' + (1 + level * 0.012).toFixed(4) + ')');
+      if (audio.duration){
+        progress.style.width = (audio.currentTime / audio.duration * 100) + '%';
+      }
+      raf = requestAnimationFrame(loop);
+    }
+
+    function stopLoop(){
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+      beak.setAttribute('transform', 'rotate(0)');
+      head.setAttribute('transform', 'rotate(0)');
+      bodyG.setAttribute('transform', 'scale(1,1)');
+    }
+
+    function setLabel(playing){
+      playBtn.innerHTML = playing ? '&#10074;&#10074; Pause' : '&#9654;&#xFE0E; Hear the story';
+    }
+
+    function toggle(){
+      if (audio.paused){
+        buildGraph();
+        if (ctx && ctx.state === 'suspended') ctx.resume();
+        audio.play().then(function(){
+          setLabel(true);
+          if (!raf) loop();
+        }).catch(function(){
+          playBtn.textContent = 'Audio unavailable';
+        });
+      } else {
+        audio.pause();
+        setLabel(false);
+        stopLoop();
+      }
+    }
+
+    playBtn.addEventListener('click', toggle);
+    birdTap.addEventListener('click', toggle);
+    birdTap.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); }
+    });
+
+    audio.addEventListener('ended', function(){
+      setLabel(false);
+      stopLoop();
+      progress.style.width = '100%';
+    });
+
+    /* blink, and the occasional idle blink even when silent */
+    setInterval(function(){
+      eyelid.setAttribute('height', '20');
+      eyelid.setAttribute('y', '80');
+      setTimeout(function(){ eyelid.setAttribute('height', '0'); }, 130);
+    }, 2800 + Math.random() * 2600);
+  })();
+  </script>
+  <!-- JUNCTION-INTRO-END -->
+
   <div class="welcome">
     <p>Welcome to JazzEra Junction, the place where our users can find and share information about what JazzEra is, does and aspires to be.</p>
     <p>First and most important, JazzEra has only one agenda: to help people discover and enjoy jazz.</p>
-    <button type="button" id="listen-btn" style="margin-top:6px;background:transparent;border:1px solid var(--brass);color:var(--brass);">🔊 Listen to this page</button>
   </div>
 
   <div id="tts-content">
@@ -511,41 +700,6 @@
   });
 
   loadPins();
-
-  // ---- Listen to this page (browser text-to-speech) ----
-  const listenBtn = document.getElementById('listen-btn');
-  let speaking = false;
-
-  function getReadableText(){
-    const welcomeParas = document.querySelectorAll('.welcome p');
-    const contentParas = document.querySelectorAll('#tts-content h2, #tts-content p');
-    let parts = [];
-    welcomeParas.forEach(p => parts.push(p.textContent));
-    contentParas.forEach(el => parts.push(el.textContent));
-    return parts.join('. ');
-  }
-
-  listenBtn.addEventListener('click', () => {
-    if (!('speechSynthesis' in window)){
-      alert('Sorry, your browser doesn\'t support reading pages aloud.');
-      return;
-    }
-    if (speaking){
-      window.speechSynthesis.cancel();
-      speaking = false;
-      listenBtn.textContent = '🔊 Listen to this page';
-      return;
-    }
-    const utterance = new SpeechSynthesisUtterance(getReadableText());
-    utterance.rate = 0.95;
-    utterance.onend = () => {
-      speaking = false;
-      listenBtn.textContent = '🔊 Listen to this page';
-    };
-    window.speechSynthesis.speak(utterance);
-    speaking = true;
-    listenBtn.textContent = '⏹ Stop reading';
-  });
 </script>
 
 </body>
