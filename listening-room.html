@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>The Listening Room — JazzEra</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#14171C; --ink-2:#1B2027; --parchment:#EDE7D9; --parchment-dim:#9A937F; --brass:#C9A227; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--ink); color:var(--parchment); font-family:'Work Sans', sans-serif; }
+  .wrap{ max-width:560px; margin:0 auto; padding:28px 16px 120px; }
+  .masthead{ text-align:center; margin-bottom:8px; }
+  .masthead svg{ width:170px; height:auto; }
+  .room-title{ font-family:'Fraunces', serif; font-weight:600; font-size:24px; text-align:center; margin:14px 0 4px; }
+  .room-sub{ font-family:'Fraunces', serif; font-style:italic; font-size:14px; color:var(--parchment-dim); text-align:center; margin:0 0 26px; line-height:1.5; }
+  .track{
+    display:flex; align-items:center; gap:12px;
+    padding:11px 12px; border-bottom:1px solid rgba(237,231,217,0.08);
+    cursor:pointer; border-radius:2px;
+  }
+  .track:active{ background:rgba(201,162,39,0.08); }
+  .track.playing{ background:var(--ink-2); border-left:2px solid var(--brass); }
+  .track-num{ font-size:12px; color:var(--parchment-dim); width:24px; text-align:right; flex:0 0 24px; }
+  .track-name{ flex:1; min-width:0; font-size:14.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .track.playing .track-name{ color:var(--brass); }
+  .track-dur{ font-size:12px; color:var(--parchment-dim); }
+  .player-bar{
+    position:fixed; left:0; right:0; bottom:0;
+    background:var(--ink-2); border-top:1px solid rgba(201,162,39,0.3);
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  }
+  .player-inner{ max-width:560px; margin:0 auto; display:flex; align-items:center; gap:12px; }
+  .pb-btn{
+    background:transparent; border:1px solid var(--brass); color:var(--brass);
+    width:42px; height:42px; border-radius:50%; font-size:15px; cursor:pointer; flex:0 0 42px;
+  }
+  .pb-meta{ flex:1; min-width:0; }
+  .pb-name{ font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pb-progress{ height:3px; background:rgba(237,231,217,0.12); margin-top:7px; border-radius:2px; overflow:hidden; cursor:pointer; }
+  .pb-progress-fill{ height:100%; width:0%; background:var(--brass); }
+  .pb-skip{ background:none; border:none; color:var(--parchment-dim); font-size:17px; cursor:pointer; padding:6px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" aria-label="JazzEra">
+      <g transform="translate(150,8)">
+        <line x1="-56" y1="96" x2="56" y2="96" stroke="#3C4A4A" stroke-width="4" stroke-linecap="round"/>
+        <polygon points="14,64 52,42 48,55 18,74" fill="#2E3B3B"/>
+        <ellipse cx="0" cy="68" rx="27" ry="23" fill="#3C4A4A"/>
+        <path d="M-18 72 q17 20 36 3 q-4 17 -20 17 q-15 0 -16 -20 Z" fill="#EDE7D9" opacity="0.85"/>
+        <path d="M-4 56 q24 -3 28 15 q-16 11 -31 2 q-3 -10 3 -17 Z" fill="#2E3B3B"/>
+        <path d="M4 62 q11 0 15 8" stroke="#C9A227" stroke-width="1.6" fill="none" opacity="0.6"/>
+        <path d="M-7 89 l0 7 M8 89 l0 7" stroke="#C9A227" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="-17" cy="40" r="17" fill="#46606B"/>
+        <path d="M-30 44 q5 10 17 11 q-1 -9 -5 -13 q-7 -3 -12 2 Z" fill="#14171C"/>
+        <path d="M-21 24 q3 -5 8 -4 M-16 23 q4 -4 8 -2" stroke="#C9A227" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.85"/>
+        <circle cx="-20" cy="37" r="4" fill="#EDE7D9"/>
+        <circle cx="-20.5" cy="37.5" r="2.2" fill="#14171C"/>
+        <polygon points="-33,40 -48,43 -33,46" fill="#C9A227"/>
+      </g>
+      <text x="150" y="152" text-anchor="middle" font-size="34" font-family="Fraunces, Georgia, serif" font-weight="600" letter-spacing="1" fill="#C9A227">JazzEra</text>
+      <line x1="92" y1="170" x2="208" y2="170" stroke="#C9A227" stroke-width="1" opacity="0.5"/>
+    </svg>
+  </div>
+  <h1 class="room-title">The Listening Room</h1>
+  <p class="room-sub">Jazz in Ordinary Time — the catalogue so far, one track a week.</p>
+  <div id="trackList"></div>
+</div>
+
+<div class="player-bar">
+  <div class="player-inner">
+    <button class="pb-btn" id="pbPlay">&#9654;&#xFE0E;</button>
+    <div class="pb-meta">
+      <div class="pb-name" id="pbName">Choose a track</div>
+      <div class="pb-progress" id="pbProgress"><div class="pb-progress-fill" id="pbFill"></div></div>
+    </div>
+    <button class="pb-skip" id="pbNext" aria-label="Next track">&#9197;&#xFE0E;</button>
+  </div>
+</div>
+
+<script>
+/* TRACKS-START — Claude Code: replace this array with one entry per file found in the /tracks folder, in filename order. name = filename without extension, tidied (hyphens/underscores to spaces). */
+var TRACKS = [
+  { name: 'Track 00', src: 'tracks/Jazz in Ordinary Time 00.mp3' },
+  { name: 'Track 01', src: 'tracks/Jazz in Ordinary time 01.mp3' },
+  { name: 'Track 02', src: 'tracks/Jazz in Ordinary time 02.mp3' },
+  { name: 'Track 03', src: 'tracks/Jazz in Ordinary time 03.mp3' },
+  { name: 'Track 04', src: 'tracks/Jazz in Ordinary time 04.mp3' },
+  { name: 'Track 05', src: 'tracks/Jazz in Ordinary Time 05.mp3' },
+  { name: 'Track 06', src: 'tracks/Jazz in Ordinary time 06.mp3' },
+  { name: 'Track 07', src: 'tracks/Jazz in Ordinary time 07.mp3' },
+  { name: 'Track 08', src: 'tracks/Jazz in Ordinary time 08.mp3' },
+  { name: 'Track 09', src: 'tracks/Jazz in Ordinary Time 09.mp3' },
+  { name: 'Track 10', src: 'tracks/Jazz in Ordinary time 10.mp3' },
+  { name: 'Track 11', src: 'tracks/Jazz in Ordinary time 11.mp3' },
+  { name: 'Track 12', src: 'tracks/Jazz in Ordinary time 12.mp3' },
+  { name: 'Track 13', src: 'tracks/Jazz in Ordinary time 13.mp3' },
+  { name: 'Track 14', src: 'tracks/Jazz in Ordinary time 14.mp3' },
+  { name: 'Track 15', src: 'tracks/Jazz in Ordinary time 15.mp3' },
+  { name: 'Track 16', src: 'tracks/Jazz in Ordinary Time 16.mp3' },
+  { name: 'Track 17', src: 'tracks/Jazz in Ordinary Time 17.mp3' },
+  { name: 'Track 18', src: 'tracks/Jazz in Ordinary time 18.mp3' },
+  { name: 'Track 19', src: 'tracks/Jazz in Ordinary time 19.mp3' },
+  { name: 'Track 20', src: 'tracks/Jazz in Ordinary time 20.mp3' },
+  { name: 'Track 21', src: 'tracks/Jazz in Ordinary time 21.mp3' },
+  { name: 'Track 22', src: 'tracks/Jazz in Ordinary time 22.mp3' },
+  { name: 'Track 23', src: 'tracks/Jazz in Ordinary time 23.mp3' },
+  { name: 'Track 24', src: 'tracks/Jazz in Ordinary time 24.mp3' },
+  { name: 'Track 25', src: 'tracks/Jazz in Ordinary time 25.mp3' },
+  { name: 'Track 26', src: 'tracks/Jazz in Ordinary Time 26.mp3' },
+  { name: 'Track 27', src: 'tracks/Jazz in Ordinary Time 27.mp3' },
+  { name: 'Track 28', src: 'tracks/Jazz in Ordinary Time 28.mp3' },
+  { name: 'Track 29', src: 'tracks/Jazz in Ordinary Time 29.mp3' },
+  { name: 'Track 30', src: 'tracks/Jazz in Ordinary Time 30.mp3' },
+  { name: 'Track 31', src: 'tracks/Jazz in Ordinary Time 31.mp3' },
+  { name: 'Track 32', src: 'tracks/Jazz in Ordinary Time 32.mp3' },
+  { name: 'Track 33', src: 'tracks/Jazz in Ordinary Time 33.mp3' },
+  { name: 'Track 34', src: 'tracks/Jazz in Ordinary Time 34.mp3' },
+  { name: 'Track 35', src: 'tracks/Jazz in Ordinary Time 35.mp3' },
+  { name: 'Track 36', src: 'tracks/Jazz in Ordinary Time 36.mp3' },
+  { name: 'Track 37', src: 'tracks/Jazz in Ordinary Time 37.mp3' },
+  { name: 'Track 38', src: 'tracks/Jazz in Ordinary Time 38.mp3' },
+  { name: 'Track 39', src: 'tracks/Jazz in Ordinary Time 39.mp3' },
+  { name: 'Track 40', src: 'tracks/Jazz in Ordinary Time 40.mp3' },
+  { name: 'Track 41', src: 'tracks/Jazz in Ordinary Time 41.mp3' },
+  { name: 'Track 42', src: 'tracks/Jazz in Ordinary Time 42.mp3' },
+  { name: 'Track 43', src: 'tracks/Jazz in Ordinary Time 43.mp3' },
+  { name: 'Track 44', src: 'tracks/Jazz in Ordinary Time 44.mp3' },
+  { name: 'Track 45', src: 'tracks/Jazz in Ordinary Time 45.mp3' },
+  { name: 'Track 46', src: 'tracks/Jazz in Ordinary Time 46.mp3' },
+  { name: 'Track 47', src: 'tracks/Jazz in Ordinary Time 47.mp3' },
+  { name: 'Track 48', src: 'tracks/Jazz in Ordinary Time 48.mp3' },
+  { name: 'Track 49', src: 'tracks/Jazz in Ordinary Time 49.mp3' },
+  { name: 'Track 50', src: 'tracks/Jazz in Ordinary Time 50.mp3' },
+  { name: 'Track 51', src: 'tracks/Jazz in Ordinary Time 51.mp3' },
+  { name: 'Track 52', src: 'tracks/Jazz in Ordinary Time 52.mp3' }
+];
+/* TRACKS-END */
+
+(function(){
+  var audio = new Audio();
+  audio.preload = 'none';
+  var current = -1;
+  var list = document.getElementById('trackList');
+  var pbPlay = document.getElementById('pbPlay');
+  var pbName = document.getElementById('pbName');
+  var pbFill = document.getElementById('pbFill');
+  var pbProgress = document.getElementById('pbProgress');
+  var rows = [];
+
+  TRACKS.forEach(function(t, i){
+    var row = document.createElement('div');
+    row.className = 'track';
+    row.innerHTML = '<span class="track-num">' + (i + 1) + '</span>' +
+                    '<span class="track-name"></span>' +
+                    '<span class="track-dur"></span>';
+    row.querySelector('.track-name').textContent = t.name;
+    row.addEventListener('click', function(){ play(i); });
+    list.appendChild(row);
+    rows.push(row);
+  });
+
+  function play(i){
+    if (i === current){ toggle(); return; }
+    current = i;
+    audio.src = TRACKS[i].src;
+    audio.play();
+    pbName.textContent = TRACKS[i].name;
+    rows.forEach(function(r, j){ r.classList.toggle('playing', j === i); });
+    pbPlay.innerHTML = '&#10074;&#10074;';
+  }
+
+  function toggle(){
+    if (current < 0){ if (TRACKS.length) play(0); return; }
+    if (audio.paused){ audio.play(); pbPlay.innerHTML = '&#10074;&#10074;'; }
+    else { audio.pause(); pbPlay.innerHTML = '&#9654;&#xFE0E;'; }
+  }
+
+  pbPlay.addEventListener('click', toggle);
+  document.getElementById('pbNext').addEventListener('click', function(){
+    if (TRACKS.length) play((current + 1) % TRACKS.length);
+  });
+
+  audio.addEventListener('timeupdate', function(){
+    if (audio.duration) pbFill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+  });
+  audio.addEventListener('ended', function(){
+    if (current < TRACKS.length - 1) play(current + 1);
+    else { pbPlay.innerHTML = '&#9654;&#xFE0E;'; rows[current].classList.remove('playing'); current = -1; pbName.textContent = 'Choose a track'; }
+  });
+  pbProgress.addEventListener('click', function(e){
+    if (!audio.duration) return;
+    var rect = pbProgress.getBoundingClientRect();
+    audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+  });
+})();
+</script>
+</body>
+</html>
