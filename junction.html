@@ -317,161 +317,154 @@
   <h1>Jazz<em>Era</em> Junction</h1>
   <p class="tagline">— where users meet</p>
 
-  <!-- JUNCTION-INTRO-START : talking bird narrator. Requires junction-intro-voice.mp3 in the same folder. -->
-  <div class="intro-panel" id="introPanel">
-    <div class="intro-bird" id="introBird" role="button" aria-label="Play the introduction" tabindex="0">
-      <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <!-- perch -->
-        <line x1="18" y1="206" x2="222" y2="206" stroke="#3C4A4A" stroke-width="5" stroke-linecap="round"/>
-        <g id="birdBody">
-          <!-- tail -->
-          <polygon points="150,140 214,108 208,126 158,156" fill="#2E3B3B"/>
-          <!-- body -->
-          <ellipse cx="120" cy="150" rx="52" ry="44" fill="#3C4A4A"/>
-          <!-- belly -->
-          <path d="M84 158 q34 40 72 6 q-8 34 -40 34 q-30 0 -32 -40 Z" fill="#EDE7D9" opacity="0.85"/>
-          <!-- wing -->
-          <path d="M112 128 q46 -6 54 30 q-30 22 -60 4 q-6 -20 6 -34 Z" fill="#2E3B3B"/>
-          <path d="M126 140 q22 0 30 16 M120 152 q20 2 26 14" stroke="#C9A227" stroke-width="2" fill="none" opacity="0.55"/>
-          <!-- legs -->
-          <path d="M108 192 l0 14 M132 192 l0 14" stroke="#C9A227" stroke-width="4" stroke-linecap="round"/>
-          <g id="birdHead">
-            <!-- head -->
-            <circle cx="86" cy="96" r="34" fill="#46606B"/>
-            <!-- black bib -->
-            <path d="M60 104 q10 20 34 22 q-2 -18 -10 -26 q-14 -6 -24 4 Z" fill="#14171C"/>
-            <!-- crest hint -->
-            <path d="M78 64 q6 -10 16 -8 M88 62 q8 -8 16 -4" stroke="#C9A227" stroke-width="2.5" fill="none" stroke-linecap="round" opacity="0.8"/>
-            <!-- eye -->
-            <circle cx="80" cy="90" r="8.5" fill="#EDE7D9"/>
-            <circle cx="79" cy="91" r="4.5" fill="#14171C"/>
-            <rect id="birdEyelid" x="70" y="80" width="20" height="0" rx="4" fill="#46606B"/>
-            <!-- upper beak -->
-            <polygon points="54,96 22,102 54,108" fill="#C9A227"/>
-            <!-- lower beak (hinged) -->
-            <polygon id="birdBeakLower" points="54,104 26,108 54,112" fill="#A8861F"/>
+  <!-- JUNCTION-INTRO-V2-START : narrated slideshow intro. Requires junction-intro-voice.(mp3|wav) and images intro-01.jpg … intro-09.jpg in an /intro folder. -->
+  <div class="story-panel" id="storyPanel">
+    <div class="story-stage" id="storyStage">
+      <!-- slides: image if present, styled title card if not -->
+      <div class="story-slide" data-at="0.00"><img src="intro/intro-01.jpg" alt="" onerror="this.remove()"><span>Jim Green, writer</span></div>
+      <div class="story-slide" data-at="0.10"><img src="intro/intro-02.jpg" alt="" onerror="this.remove()"><span>The books</span></div>
+      <div class="story-slide" data-at="0.20"><img src="intro/intro-03.jpg" alt="" onerror="this.remove()"><span>The novels</span></div>
+      <div class="story-slide" data-at="0.30"><img src="intro/intro-04.jpg" alt="" onerror="this.remove()"><span>The silent decade</span></div>
+      <div class="story-slide" data-at="0.36"><img src="intro/intro-05.jpg" alt="" onerror="this.remove()"><span>Prometheus Bound</span></div>
+      <div class="story-slide" data-at="0.47"><img src="intro/intro-06.jpg" alt="" onerror="this.remove()"><span>&rsquo;Fifty-Eight</span></div>
+      <div class="story-slide" data-at="0.63"><img src="intro/intro-07.jpg" alt="" onerror="this.remove()"><span>The music flows</span></div>
+      <div class="story-slide" data-at="0.76"><img src="intro/intro-08.jpg" alt="" onerror="this.remove()"><span>&ldquo;Can you write code for me?&rdquo;</span></div>
+      <div class="story-slide" data-at="0.88"><img src="intro/intro-09.jpg" alt="" onerror="this.remove()"><span>Jazz returns</span></div>
+      <div class="story-slide story-slide-logo" data-at="0.95">
+        <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <g transform="translate(150,8)">
+            <line x1="-56" y1="96" x2="56" y2="96" stroke="#3C4A4A" stroke-width="4" stroke-linecap="round"/>
+            <polygon points="14,64 52,42 48,55 18,74" fill="#2E3B3B"/>
+            <ellipse cx="0" cy="68" rx="27" ry="23" fill="#3C4A4A"/>
+            <path d="M-18 72 q17 20 36 3 q-4 17 -20 17 q-15 0 -16 -20 Z" fill="#EDE7D9" opacity="0.85"/>
+            <path d="M-4 56 q24 -3 28 15 q-16 11 -31 2 q-3 -10 3 -17 Z" fill="#2E3B3B"/>
+            <path d="M4 62 q11 0 15 8" stroke="#C9A227" stroke-width="1.6" fill="none" opacity="0.6"/>
+            <path d="M-7 89 l0 7 M8 89 l0 7" stroke="#C9A227" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="-17" cy="40" r="17" fill="#46606B"/>
+            <path d="M-30 44 q5 10 17 11 q-1 -9 -5 -13 q-7 -3 -12 2 Z" fill="#14171C"/>
+            <path d="M-21 24 q3 -5 8 -4 M-16 23 q4 -4 8 -2" stroke="#C9A227" stroke-width="1.4" fill="none" stroke-linecap="round" opacity="0.85"/>
+            <circle cx="-20" cy="37" r="4" fill="#EDE7D9"/>
+            <circle cx="-20.5" cy="37.5" r="2.2" fill="#14171C"/>
+            <polygon points="-33,40 -48,43 -33,46" fill="#C9A227"/>
           </g>
-        </g>
-      </svg>
+          <text x="150" y="152" text-anchor="middle" font-size="34" font-family="Fraunces, Georgia, serif" font-weight="600" letter-spacing="1" fill="#C9A227">JazzEra</text>
+          <line x1="92" y1="170" x2="208" y2="170" stroke="#C9A227" stroke-width="1" opacity="0.5"/>
+        </svg>
+      </div>
     </div>
-    <div class="intro-meta">
-      <div class="intro-label">A brief history of the project</div>
-      <div class="intro-sub">narrated — press play, the bird will tell it</div>
-      <button type="button" class="intro-play" id="introPlayBtn">&#9654;&#xFE0E; Hear the story</button>
-      <div class="intro-progress"><div class="intro-progress-fill" id="introProgress"></div></div>
+    <div class="story-controls">
+      <button type="button" class="story-play" id="storyPlayBtn">&#9654;&#xFE0E;&nbsp; A brief history of the project</button>
+      <div class="story-progress"><div class="story-progress-fill" id="storyProgress"></div></div>
     </div>
+    <details class="story-text">
+      <summary>Read the story</summary>
+      <div class="story-text-body">
+        <p>Jim Green, a UK-based writer, created JazzEra from scratch, with the help of agentic AI. He had no background in technology &mdash; but as someone whose work had been scraped to train AI models, he was curious what all the fuss was about.</p>
+        <p>He had written many books over many years: textbooks, travel, humour &mdash; even a Welsh quiz book. And several novels: a crime series built around Jimmy Costello, a corrupt and violent detective sergeant in London's Metropolitan Police; and an historical espionage series, chronicling the rise of the American intelligence agencies. But, due to circumstances, he had to give up writing for about ten years.</p>
+        <p>When he returned to his trade, it was as a playwright. His adaptation of a new translation of Aeschylus's tragedy, <em>Prometheus Bound</em>, was performed in Surrey, England, in 2024. Then he began work on a musical &mdash; <em>'Fifty-Eight</em> &mdash; set in 1958, when Jim was fourteen. What a time to be setting out as a teenager! He finished the script, and spent two years looking for a musical collaborator. Without success.</p>
+        <p>Then he read an article in the New Statesman, about music-creation platforms. He went there &mdash; and the music began to flow. Once he had the instrumentals and the songs for his musical, he decided to explore what else AI could do for him as a creative. The latest go-to thing was platforms that write code from plain English. So he asked: &ldquo;Can you write code for me?&rdquo; And the answer came back: &ldquo;Yes, I can. What is it you want to build?&rdquo;</p>
+        <p>Jim had enjoyed jazz as a young man, but it had rather fallen out of his life &mdash; until it returned in his musical. So that's what he decided to build: a place where people could listen to jazz, and respond.</p>
+        <p>And JazzEra began to be built.</p>
+      </div>
+    </details>
   </div>
 
   <style>
-    .intro-panel{
-      display:flex; align-items:center; gap:16px;
-      background:var(--ink-2);
-      border:1px solid rgba(201,162,39,0.25);
-      border-radius:2px;
-      padding:16px;
-      margin-bottom:30px;
+    .story-panel{ max-width:560px; margin:0 auto 30px; background:var(--ink-2); border:1px solid rgba(201,162,39,0.25); border-radius:2px; overflow:hidden; }
+    .story-stage{ position:relative; width:100%; aspect-ratio:16/10; background:var(--ink); }
+    .story-slide{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.9s ease; }
+    .story-slide.active{ opacity:1; }
+    .story-slide img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .story-slide img + span{ display:none; } /* caption hides when image loads */
+    .story-slide span{
+      font-family:'Fraunces', serif; font-weight:400; font-style:italic;
+      color:var(--parchment-dim); font-size:20px; padding:0 24px; text-align:center;
     }
-    .intro-bird{ width:104px; flex:0 0 104px; cursor:pointer; }
-    .intro-bird svg{ width:100%; height:auto; display:block; }
-    .intro-meta{ flex:1; min-width:0; }
-    .intro-label{
-      font-family:'Fraunces', serif; font-weight:600;
-      font-size:17px; color:var(--parchment); line-height:1.2;
+    .story-slide-logo{ background:var(--ink); }
+    .story-slide-logo svg{ width:64%; max-width:280px; height:auto; }
+    .story-controls{ padding:14px 16px 16px; }
+    .story-play{
+      width:100%; background:transparent; border:1px solid var(--brass); color:var(--brass);
+      font-family:'Work Sans', sans-serif; font-size:14px; font-weight:600; letter-spacing:0.05em;
+      padding:11px 14px; border-radius:2px; cursor:pointer;
     }
-    .intro-sub{
-      font-size:12.5px; font-style:italic; font-family:'Fraunces', serif;
-      color:var(--parchment-dim); margin:3px 0 10px;
+    .story-play:active{ background:rgba(201,162,39,0.15); }
+    .story-progress{ height:3px; background:rgba(237,231,217,0.12); margin-top:12px; border-radius:2px; overflow:hidden; }
+    .story-progress-fill{ height:100%; width:0%; background:var(--brass); }
+    .story-text{ border-top:1px solid rgba(201,162,39,0.2); }
+    .story-text summary{
+      list-style:none; cursor:pointer; padding:11px 16px;
+      font-family:'Work Sans', sans-serif; font-size:12.5px; letter-spacing:0.08em;
+      text-transform:uppercase; color:var(--parchment-dim);
     }
-    .intro-play{
-      background:transparent; border:1px solid var(--brass); color:var(--brass);
-      font-family:'Work Sans', sans-serif; font-size:13px; font-weight:600;
-      letter-spacing:0.06em; padding:8px 14px; border-radius:2px; cursor:pointer;
+    .story-text summary::-webkit-details-marker{ display:none; }
+    .story-text summary::before{ content:'\2192\00a0\00a0'; color:var(--brass); }
+    .story-text[open] summary::before{ content:'\2193\00a0\00a0'; }
+    .story-text-body{ padding:0 18px 18px; }
+    .story-text-body p{
+      font-family:'Fraunces', serif; font-size:15.5px; line-height:1.65;
+      color:var(--parchment); margin:0 0 14px;
     }
-    .intro-play:active{ background:rgba(201,162,39,0.15); }
-    .intro-progress{
-      height:3px; background:rgba(237,231,217,0.12);
-      margin-top:12px; border-radius:2px; overflow:hidden;
-    }
-    .intro-progress-fill{
-      height:100%; width:0%; background:var(--brass); border-radius:2px;
-    }
-    #birdHead{ transform-origin:86px 110px; }
-    #birdBody{ transform-origin:120px 150px; }
-    #birdBeakLower{ transform-origin:54px 106px; }
   </style>
 
   <script>
   (function(){
-    const audio = new Audio('junction-intro-voice.mp3');
+    var audio = new Audio('junction-intro-voice.mp3');
     audio.preload = 'metadata';
-    const playBtn  = document.getElementById('introPlayBtn');
-    const birdTap  = document.getElementById('introBird');
-    const beak     = document.getElementById('birdBeakLower');
-    const head     = document.getElementById('birdHead');
-    const bodyG    = document.getElementById('birdBody');
-    const eyelid   = document.getElementById('birdEyelid');
-    const progress = document.getElementById('introProgress');
-
-    let ctx = null, analyser = null, data = null, raf = null, level = 0;
-
-    function buildGraph(){
-      if (ctx) return true;
-      try{
-        const AC = window.AudioContext || window.webkitAudioContext;
-        ctx = new AC();
-        const src = ctx.createMediaElementSource(audio);
-        analyser = ctx.createAnalyser();
-        analyser.fftSize = 512;
-        src.connect(analyser);
-        analyser.connect(ctx.destination);
-        data = new Uint8Array(analyser.fftSize);
-        return true;
-      }catch(e){ ctx = null; return false; }
-    }
-
-    function amplitude(){
-      if (analyser){
-        analyser.getByteTimeDomainData(data);
-        let sum = 0;
-        for (let i = 0; i < data.length; i += 4){
-          const d = (data[i] - 128) / 128;
-          sum += d * d;
-        }
-        return Math.min(1, Math.sqrt(sum / (data.length / 4)) * 3.2);
+    /* if the mp3 is absent (placeholder era), fall back to the wav */
+    audio.addEventListener('error', function(){
+      if (audio.src.indexOf('.wav') === -1){
+        audio = new Audio('junction-intro-voice.wav');
+        audio.preload = 'metadata';
+        wire(audio);
       }
-      /* fallback flutter when Web Audio is unavailable */
-      return audio.paused ? 0 : 0.25 + 0.35 * Math.abs(Math.sin(performance.now() / 90));
+    });
+
+    var playBtn  = document.getElementById('storyPlayBtn');
+    var progress = document.getElementById('storyProgress');
+    var slides   = Array.prototype.slice.call(document.querySelectorAll('.story-slide'));
+    var raf = null;
+
+    slides[0].classList.add('active');
+
+    function showSlideFor(frac){
+      var current = 0;
+      for (var i = 0; i < slides.length; i++){
+        if (frac >= parseFloat(slides[i].getAttribute('data-at'))) current = i;
+      }
+      for (var j = 0; j < slides.length; j++){
+        slides[j].classList.toggle('active', j === current);
+      }
     }
 
     function loop(){
-      const target = amplitude();
-      level += (target - level) * 0.35;
-      const open = level * 22;                       /* beak degrees */
-      beak.setAttribute('transform', 'rotate(' + open.toFixed(2) + ')');
-      head.setAttribute('transform', 'rotate(' + (-level * 2.4).toFixed(2) + ')');
-      bodyG.setAttribute('transform', 'scale(1,' + (1 + level * 0.012).toFixed(4) + ')');
       if (audio.duration){
-        progress.style.width = (audio.currentTime / audio.duration * 100) + '%';
+        var frac = audio.currentTime / audio.duration;
+        progress.style.width = (frac * 100) + '%';
+        showSlideFor(frac);
       }
       raf = requestAnimationFrame(loop);
     }
 
-    function stopLoop(){
-      if (raf) cancelAnimationFrame(raf);
-      raf = null;
-      beak.setAttribute('transform', 'rotate(0)');
-      head.setAttribute('transform', 'rotate(0)');
-      bodyG.setAttribute('transform', 'scale(1,1)');
-    }
-
     function setLabel(playing){
-      playBtn.innerHTML = playing ? '&#10074;&#10074; Pause' : '&#9654;&#xFE0E; Hear the story';
+      playBtn.innerHTML = playing
+        ? '&#10074;&#10074;&nbsp; Pause'
+        : '&#9654;&#xFE0E;&nbsp; A brief history of the project';
     }
 
-    function toggle(){
+    function wire(a){
+      a.addEventListener('ended', function(){
+        setLabel(false);
+        if (raf) cancelAnimationFrame(raf);
+        raf = null;
+        progress.style.width = '100%';
+        showSlideFor(1);
+      });
+    }
+    wire(audio);
+
+    playBtn.addEventListener('click', function(){
       if (audio.paused){
-        buildGraph();
-        if (ctx && ctx.state === 'suspended') ctx.resume();
         audio.play().then(function(){
           setLabel(true);
           if (!raf) loop();
@@ -481,31 +474,13 @@
       } else {
         audio.pause();
         setLabel(false);
-        stopLoop();
+        if (raf) cancelAnimationFrame(raf);
+        raf = null;
       }
-    }
-
-    playBtn.addEventListener('click', toggle);
-    birdTap.addEventListener('click', toggle);
-    birdTap.addEventListener('keydown', function(e){
-      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); }
     });
-
-    audio.addEventListener('ended', function(){
-      setLabel(false);
-      stopLoop();
-      progress.style.width = '100%';
-    });
-
-    /* blink, and the occasional idle blink even when silent */
-    setInterval(function(){
-      eyelid.setAttribute('height', '20');
-      eyelid.setAttribute('y', '80');
-      setTimeout(function(){ eyelid.setAttribute('height', '0'); }, 130);
-    }, 2800 + Math.random() * 2600);
   })();
   </script>
-  <!-- JUNCTION-INTRO-END -->
+  <!-- JUNCTION-INTRO-V2-END -->
 
   <div class="welcome">
     <p>Welcome to JazzEra Junction, the place where our users can find and share information about what JazzEra is, does and aspires to be.</p>

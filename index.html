@@ -98,12 +98,10 @@
   .logo { font-family:'Playfair Display',serif; font-size:1.4rem; font-weight:900; letter-spacing:0.3em; color:var(--gold); text-transform:uppercase; }
   .logo span { color:var(--cream); font-style:italic; font-weight:400; }
 
+  .masthead { text-align:center; padding:1.2rem 0 0; }
+  .masthead img { width:170px; height:auto; display:inline-block; }
+
   .header-right { display:flex; align-items:center; gap:2rem; }
-  .junction-link {
-    font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase;
-    color:var(--mist); text-decoration:none; transition:color 0.2s;
-  }
-  .junction-link:hover { color:var(--gold); }
   .invited-tag {
     font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase;
     color:var(--rust); border:1px solid rgba(181,74,47,0.35); padding:0.3rem 0.7rem;
@@ -452,10 +450,13 @@
 <!-- ══ APP ══ -->
 <div id="app">
 
+  <div class="masthead">
+    <img src="jazzera-logo.svg" alt="JazzEra" width="170">
+  </div>
+
   <header>
     <div class="logo">Jazz<span>Era</span></div>
     <div class="header-right">
-      <a href="junction.html" class="junction-link">Junction</a>
       <div class="invited-tag">Invited</div>
       <div class="user-name" id="headerName"></div>
       <button class="logout-btn" onclick="logout()">Leave session</button>
