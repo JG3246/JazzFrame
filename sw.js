@@ -1,8 +1,9 @@
 // JazzEra Service Worker
-const CACHE_NAME = 'jazzera-v2';
+const CACHE_NAME = 'jazzera-v3';
 const ASSETS = [
   '/JazzFrame/',
   '/JazzFrame/index.html',
+  '/JazzFrame/gate.html',
   '/JazzFrame/share.html',
   '/JazzFrame/manifest.json',
 ];
