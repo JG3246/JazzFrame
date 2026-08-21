@@ -131,6 +131,7 @@
   <div class="aside-sub">Admin Console</div>
   <div class="nav-item on" onclick="showPage('dashboard',this)">Dashboard</div>
   <div class="nav-item" onclick="showPage('invites',this)">Invites</div>
+  <div class="nav-item" onclick="showPage('lrinvites',this)">Listening Room</div>
   <div class="nav-item" onclick="showPage('submissions',this)">Submissions</div>
   <div class="nav-item" onclick="showPage('session',this)">Session Settings</div>
   <div class="aside-divider"></div>
@@ -198,6 +199,45 @@
         <span>Email</span><span>Name</span><span>Added</span><span>Status</span><span></span>
       </div>
       <div id="inviteList"></div>
+    </div>
+  </div>
+
+  <!-- LISTENING ROOM INVITES -->
+  <div class="page" id="page-lrinvites">
+    <div class="page-title">Listening Room</div>
+    <div class="page-sub">Manage who can access the Listening Room — a separate list from the session invites</div>
+
+    <div class="section-block">
+      <div class="block-title">Add invites</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="field-label">Email address</label>
+          <input class="field-input" id="lrInviteEmail" type="email" placeholder="listener@example.com">
+        </div>
+        <div class="form-group">
+          <label class="field-label">Name (optional)</label>
+          <input class="field-input" id="lrInviteName" type="text" placeholder="Their name">
+        </div>
+      </div>
+      <button class="primary-btn" onclick="addLRInvite()">Add to List</button>
+    </div>
+
+    <div class="section-block">
+      <div class="block-title">Bulk import — one email per line</div>
+      <div class="bulk-area">
+        <textarea class="field-input" id="lrBulkEmails" rows="5" placeholder="alice@example.com&#10;bob@example.com&#10;carol@example.com"></textarea>
+        <div class="bulk-hint">Emails will be added to the Listening Room list. They'll need the Listening Room URL to access.</div>
+      </div>
+      <br><br>
+      <button class="primary-btn" onclick="bulkLRInvite()">Add All</button>
+    </div>
+
+    <div class="block-title">Listening Room list</div>
+    <div class="table-wrap">
+      <div class="table-head invite-cols">
+        <span>Email</span><span>Name</span><span>Added</span><span></span><span></span>
+      </div>
+      <div id="lrInviteList"></div>
     </div>
   </div>
 
@@ -273,7 +313,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_Q_aC0YGOoob7rInKS3H1NA_DgiE4Jwj';
 let SESSION_ID = 'session_014';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let invites = [], submissions = [], selectedAudio = null;
+let invites = [], lrInvites = [], submissions = [], selectedAudio = null;
 
 // ── Admin auth (Supabase login) ──
 async function adminLogin() {
@@ -306,7 +346,7 @@ function showPage(id, el) {
 
 // ── Load all data ──
 async function loadAll() {
-  await Promise.all([loadInvites(), loadSubmissions()]);
+  await Promise.all([loadInvites(), loadLRInvites(), loadSubmissions()]);
   renderDashboard();
   populateSessionForm();
 }
@@ -381,6 +421,58 @@ async function removeInvite(id) {
   await sb.from('invites').delete().eq('id', id);
   showToast('Invite removed', 'ok');
   await loadInvites();
+}
+
+// ── Listening Room invites (separate list from session invites) ──
+async function loadLRInvites() {
+  const { data } = await sb.from('listening_room_invites').select('*').order('created_at', {ascending:false});
+  lrInvites = data || [];
+  renderLRInviteList();
+}
+
+function renderLRInviteList() {
+  const el = document.getElementById('lrInviteList');
+  if (!lrInvites.length) { el.innerHTML = '<div style="padding:2rem;text-align:center;font-size:0.65rem;color:var(--mist)">No one on the list yet.</div>'; return; }
+  el.innerHTML = lrInvites.map(i => `
+    <div class="table-row invite-cols">
+      <span style="font-size:0.72rem">${esc(i.email)}</span>
+      <span style="font-size:0.68rem;color:var(--mist)">${esc(i.name||'—')}</span>
+      <span style="font-size:0.62rem;color:rgba(138,154,170,0.6)">${timeAgo(i.created_at)}</span>
+      <span></span>
+      <span><button class="action-btn del" onclick="removeLRInvite('${i.id}')">Remove</button></span>
+    </div>`).join('');
+}
+
+async function addLRInvite() {
+  const email = document.getElementById('lrInviteEmail').value.trim().toLowerCase();
+  const name  = document.getElementById('lrInviteName').value.trim();
+  if (!email) { showToast('Enter an email', 'err'); return; }
+  const { error } = await sb.from('listening_room_invites').insert({ email, name: name || null });
+  if (error) { showToast(error.message, 'err'); return; }
+  document.getElementById('lrInviteEmail').value = '';
+  document.getElementById('lrInviteName').value = '';
+  showToast(`${email} added`, 'ok');
+  await loadLRInvites();
+}
+
+async function bulkLRInvite() {
+  const raw = document.getElementById('lrBulkEmails').value.trim();
+  if (!raw) return;
+  const emails = raw.split('\n').map(e => e.trim().toLowerCase()).filter(e => e && e.includes('@'));
+  if (!emails.length) { showToast('No valid emails found', 'err'); return; }
+  const rows = emails.map(email => ({ email }));
+  const { error } = await sb.from('listening_room_invites').insert(rows);
+  if (error) { showToast(error.message, 'err'); return; }
+  document.getElementById('lrBulkEmails').value = '';
+  showToast(`${emails.length} added to the Listening Room list`, 'ok');
+  await loadLRInvites();
+}
+
+async function removeLRInvite(id) {
+  if (!confirm('Remove this listener from the Listening Room list?')) return;
+  await sb.from('listening_room_invites').delete().eq('id', id);
+  showToast('Removed', 'ok');
+  await loadLRInvites();
 }
 
 // ── Submissions ──

@@ -6,6 +6,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>The Listening Room — JazzEra</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{ --ink:#14171C; --ink-2:#1B2027; --parchment:#EDE7D9; --parchment-dim:#9A937F; --brass:#C9A227; }
   *{ box-sizing:border-box; }
@@ -41,9 +42,56 @@
   .pb-progress{ height:3px; background:rgba(237,231,217,0.12); margin-top:7px; border-radius:2px; overflow:hidden; cursor:pointer; }
   .pb-progress-fill{ height:100%; width:0%; background:var(--brass); }
   .pb-skip{ background:none; border:none; color:var(--parchment-dim); font-size:17px; cursor:pointer; padding:6px; }
+
+  /* ── Invite gate ── */
+  body.locked .wrap, body.locked .player-bar{ display:none; }
+  .lr-gate{
+    display:none; position:fixed; inset:0; z-index:50; background:var(--ink);
+    align-items:center; justify-content:center; padding:24px 16px;
+  }
+  body.locked .lr-gate{ display:flex; }
+  .lr-gate-card{
+    width:100%; max-width:400px; background:var(--ink-2);
+    border:1px solid rgba(201,162,39,0.3); border-radius:4px;
+    padding:30px 24px; text-align:center;
+  }
+  .lr-gate-title{ font-family:'Fraunces', serif; font-weight:600; font-size:22px; margin:0 0 6px; }
+  .lr-gate-sub{ font-family:'Fraunces', serif; font-style:italic; font-size:13.5px; color:var(--parchment-dim); margin:0 0 22px; line-height:1.5; }
+  .lr-gate-label{ display:block; text-align:left; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--parchment-dim); margin:0 0 6px; }
+  .lr-gate-input{
+    width:100%; padding:11px 12px; border-radius:2px;
+    background:var(--ink); border:1px solid rgba(237,231,217,0.2);
+    color:var(--parchment); font-family:'Work Sans', sans-serif; font-size:14.5px;
+  }
+  .lr-gate-input:focus{ outline:none; border-color:var(--brass); }
+  .lr-gate-btn{
+    width:100%; margin-top:14px; padding:12px;
+    background:transparent; border:1px solid var(--brass); color:var(--brass);
+    border-radius:2px; font-family:'Work Sans', sans-serif; font-weight:600;
+    font-size:14px; letter-spacing:0.04em; cursor:pointer;
+  }
+  .lr-gate-btn:active{ background:rgba(201,162,39,0.12); }
+  .lr-gate-error{ font-size:13px; color:#D08770; margin:12px 0 0; min-height:18px; line-height:1.5; }
+  .lr-gate-status{ font-size:13.5px; color:var(--parchment-dim); margin:0; }
 </style>
 </head>
-<body>
+<body class="locked">
+
+<!-- ══ INVITE GATE ══ -->
+<div class="lr-gate" id="lrGate">
+  <div class="lr-gate-card">
+    <h1 class="lr-gate-title">The Listening Room</h1>
+    <p class="lr-gate-sub">This room is open to invited listeners only.</p>
+    <div id="lrGateChecking"><p class="lr-gate-status">Checking your invitation&hellip;</p></div>
+    <div id="lrGateForm" style="display:none;">
+      <label class="lr-gate-label" for="lrEmail">Invited email address</label>
+      <input class="lr-gate-input" id="lrEmail" type="email" placeholder="you@example.com" autocomplete="email">
+      <button class="lr-gate-btn" onclick="lrGateSubmit()">Enter the Room</button>
+      <div class="lr-gate-error" id="lrGateError"></div>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="masthead">
     <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" aria-label="JazzEra">
@@ -83,6 +131,74 @@
 </div>
 
 <script>
+// ══ INVITE GATE ══
+// Access is controlled by the listening_room_invites table in Supabase —
+// a separate list from the homepage's invites table.
+const SUPABASE_URL = 'https://qqxlgygacojaugerzgiq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxeGxneWdhY29qYXVnZXJ6Z2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjExMDYsImV4cCI6MjA5MzYzNzEwNn0.AMBwsXrnTL02FY0T7Da6pJfKGVU3_AfA0Ce851CTog4';
+const sbLR = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+function lrShowForm(message){
+  document.getElementById('lrGateChecking').style.display = 'none';
+  document.getElementById('lrGateForm').style.display = 'block';
+  document.getElementById('lrGateError').textContent = message || '';
+}
+
+function lrUnlock(email){
+  sessionStorage.setItem('lr_user', JSON.stringify({ email: email }));
+  document.body.classList.remove('locked');
+}
+
+// Returns 'ok' if the email is on the Listening Room list,
+// 'denied' if not, 'error' if the check couldn't be completed.
+async function lrCheckEmail(email){
+  try {
+    const { data, error } = await sbLR
+      .from('listening_room_invites')
+      .select('id')
+      .ilike('email', email)
+      .maybeSingle();
+    if (error) return 'error';
+    return data ? 'ok' : 'denied';
+  } catch(e) {
+    return 'error';
+  }
+}
+
+async function lrGateSubmit(){
+  const email = document.getElementById('lrEmail').value.trim().toLowerCase();
+  const errEl = document.getElementById('lrGateError');
+  errEl.textContent = '';
+  if (!email){ errEl.textContent = 'Please enter your email address.'; return; }
+
+  const result = await lrCheckEmail(email);
+  if (result === 'ok'){ lrUnlock(email); return; }
+  if (result === 'denied'){
+    errEl.textContent = 'Sorry — this email isn\'t on the invite list for the Listening Room.';
+  } else {
+    errEl.textContent = 'We couldn\'t verify your invitation just now. Please try again in a moment.';
+  }
+}
+
+// On load: restore a previous entry for this browser session, re-verifying
+// the email is still on the list; otherwise show the email form.
+(function(){
+  let stored = null;
+  try { stored = JSON.parse(sessionStorage.getItem('lr_user')); } catch(e) {}
+  if (!stored || !stored.email){ lrShowForm(); return; }
+  lrCheckEmail(stored.email).then(function(result){
+    if (result === 'ok'){ lrUnlock(stored.email); }
+    else {
+      sessionStorage.removeItem('lr_user');
+      lrShowForm(result === 'denied' ? 'Your invitation is no longer on the list.' : '');
+    }
+  });
+})();
+
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Enter' && document.body.classList.contains('locked')) lrGateSubmit();
+});
+
 /* TRACKS-START — Claude Code: replace this array with one entry per file found in the /tracks folder, in filename order. name = filename without extension, tidied (hyphens/underscores to spaces). */
 var TRACKS = [
   { name: 'Track 00', src: 'tracks/Jazz in Ordinary Time 00.mp3' },
