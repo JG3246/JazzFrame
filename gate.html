@@ -566,7 +566,7 @@
          ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
       <span class="upload-icon">⬡</span>
       <div class="upload-main">Drop your video here</div>
-      <div class="upload-small">Any video format · iPhone & Android · up to 50MB · max 2 minutes</div>
+      <div class="upload-small">Any video format · iPhone & Android · up to 250MB · max 2 minutes</div>
     </div>
 
     <div class="field-row">
@@ -880,7 +880,7 @@ function handleFileSelect(input) {
 }
 
 function setFile(file) {
-  if (file.size > 50 * 1024 * 1024) { showToast('File too large — 50MB max. Try exporting at 720p.', 'err'); return; }
+  if (file.size > 250 * 1024 * 1024) { showToast('File too large — 250MB max. Try exporting at 720p.', 'err'); return; }
   selectedFile = file;
   const url = URL.createObjectURL(file);
   const prev = document.getElementById('videoPreview');
