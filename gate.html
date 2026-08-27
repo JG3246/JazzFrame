@@ -310,6 +310,15 @@
   .card-body { padding:1rem 1.1rem 1.1rem; }
   .card-author { font-family:'Cormorant Garamond',serif; font-size:1rem; font-style:italic; margin-bottom:0.2rem; }
   .card-note { font-size:0.62rem; color:var(--mist); line-height:1.6; margin-bottom:0.8rem; min-height:2.4em; }
+  .card-track { font-size:0.56rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:0.35rem; }
+  .track-options { display:flex; gap:0.6rem; flex-wrap:wrap; }
+  .track-option {
+    background:transparent; border:1px solid rgba(201,168,76,0.35); color:var(--mist);
+    font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.08em;
+    padding:0.55rem 0.9rem; cursor:pointer; transition:all 0.2s;
+  }
+  .track-option:hover { border-color:var(--gold); color:var(--cream); }
+  .track-option.selected { background:var(--gold); border-color:var(--gold); color:var(--ink); }
   .card-footer { display:flex; justify-content:space-between; align-items:center; }
   .card-date { font-size:0.58rem; color:rgba(138,154,170,0.5); letter-spacing:0.08em; }
 
@@ -602,6 +611,14 @@
     </div>
 
     <div class="field-row">
+      <label class="field-label">Which track is your video responding to?</label>
+      <div class="track-options" id="trackOptions">
+        <button type="button" class="track-option" data-track="Let The Music Begin...." onclick="selectTrack(this)">Let The Music Begin....</button>
+        <button type="button" class="track-option" data-track="Jazz in Ordinary Time — No. 09" onclick="selectTrack(this)">Jazz in Ordinary Time — No. 09</button>
+      </div>
+    </div>
+
+    <div class="field-row">
       <label class="field-label" for="noteField">A note about your interpretation (optional)</label>
       <input class="field-input" id="noteField" type="text" maxlength="140" placeholder="What did you hear?" oninput="updateChar()">
       <div class="char-count"><span id="charCount">0</span> / 140</div>
@@ -663,6 +680,7 @@
     <video class="lb-video" id="lbVideo" controls playsinline></video>
     <div class="lb-meta">
       <div class="lb-author" id="lbAuthor"></div>
+      <div class="lb-track" id="lbTrack" style="font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin:0.2rem 0 0.3rem"></div>
       <div class="lb-note" id="lbNote" style="font-size:0.7rem;color:var(--mist)"></div>
     </div>
   </div>
@@ -872,6 +890,7 @@ function renderGallery() {
       </div>
       <div class="card-body">
         <div class="card-author">${esc(s.author_name)}</div>
+        ${s.track_title ? `<div class="card-track">♫ ${esc(s.track_title)}</div>` : ''}
         <div class="card-note">${s.note ? esc(s.note) : ''}</div>
         <div class="card-footer">
           <div class="card-date">${timeAgo(s.created_at)}</div>
@@ -905,6 +924,15 @@ async function vote(id, btn) {
 }
 
 // ── Upload ──
+let selectedTrack = null;
+function selectTrack(btn) {
+  selectedTrack = btn.dataset.track;
+  document.querySelectorAll('.track-option').forEach(b => b.classList.toggle('selected', b === btn));
+  updateSubmitState();
+}
+function updateSubmitState() {
+  document.getElementById('submitBtn').disabled = !(selectedFile && selectedTrack);
+}
 function handleFileSelect(input) {
   const file = input.files[0];
   if (!file) return;
@@ -919,8 +947,8 @@ function setFile(file) {
   prev.src = url;
   document.getElementById('previewWrap').classList.add('visible');
   document.getElementById('uploadZone').style.display = 'none';
-  document.getElementById('submitBtn').disabled = false;
-  showToast('Video ready — add a note and submit', 'ok');
+  updateSubmitState();
+  showToast(selectedTrack ? 'Video ready — add a note and submit' : 'Video ready — choose the track it responds to', 'ok');
 }
 
 function clearVideo() {
@@ -928,7 +956,7 @@ function clearVideo() {
   document.getElementById('videoPreview').src = '';
   document.getElementById('previewWrap').classList.remove('visible');
   document.getElementById('uploadZone').style.display = '';
-  document.getElementById('submitBtn').disabled = true;
+  updateSubmitState();
   document.getElementById('videoInput').value = '';
 }
 
@@ -946,6 +974,7 @@ function updateChar() {
 
 async function submitVideo() {
   if (!selectedFile || !currentUser) return;
+  if (!selectedTrack) { showToast('Please choose which track your video responds to', 'err'); return; }
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'Uploading…';
   const pw = document.getElementById('progressWrap');
@@ -985,10 +1014,13 @@ async function submitVideo() {
       author_email: currentUser.email,
       video_url: urlData.publicUrl,
       note: document.getElementById('noteField').value.trim(),
+      track_title: selectedTrack,
       votes: 0,
     });
 
     showToast('Submission received — thank you', 'ok');
+    selectedTrack = null;
+    document.querySelectorAll('.track-option').forEach(b => b.classList.remove('selected'));
     clearVideo();
     document.getElementById('noteField').value = '';
     document.getElementById('charCount').textContent = '0';
@@ -1012,6 +1044,7 @@ function openLightbox(id) {
   if (!sub) return;
   document.getElementById('lbVideo').src = sub.video_url;
   document.getElementById('lbAuthor').textContent = sub.author_name;
+  document.getElementById('lbTrack').textContent = sub.track_title ? 'In response to ' + sub.track_title : '';
   document.getElementById('lbNote').textContent = sub.note || '';
   document.getElementById('lightbox').classList.add('open');
   document.getElementById('lbVideo').play();
@@ -1106,7 +1139,7 @@ function generateCard(id) {
     // Track title
     ctx.fillStyle = '#c9a84c';
     ctx.font = '14px "DM Mono", monospace';
-    ctx.fillText(sessionTitle, 40, 450);
+    ctx.fillText(sub.track_title || sessionTitle, 40, 450);
 
     // Note if exists
     if (sub.note) {

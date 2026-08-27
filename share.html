@@ -59,6 +59,8 @@
     font-weight:900; line-height:1; margin-bottom:0.4rem;
   }
   .share-author em { font-style:italic; color:var(--gold); }
+  .share-track { font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--mist); margin-bottom:1rem; }
+  .share-track em { font-style:normal; color:var(--gold); }
 
   .share-note {
     font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:300;
@@ -268,6 +270,7 @@ function renderPage() {
     </div>
 
     <div class="share-author"><em>${esc(sub.author_name)}</em></div>
+    ${sub.track_title ? `<div class="share-track">In response to <em>${esc(sub.track_title)}</em></div>` : ''}
     ${sub.note ? `<div class="share-note">${esc(sub.note)}</div>` : '<div style="margin-bottom:1.5rem"></div>'}
 
     <div class="video-wrap">
@@ -405,7 +408,7 @@ function generateCard() {
 
     ctx.fillStyle = '#c9a84c';
     ctx.font = '14px monospace';
-    ctx.fillText(sess?.track_title || 'JazzEra Session', 40, 452);
+    ctx.fillText(sub.track_title || sess?.track_title || 'JazzEra Session', 40, 452);
 
     if (sub.note) {
       ctx.fillStyle = '#8a9aaa';
