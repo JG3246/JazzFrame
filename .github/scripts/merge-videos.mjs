@@ -70,9 +70,11 @@ function buildFfmpegArgs(videoFile, trackFile, video, track, outFile) {
   const MIX = 'amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95:level=false';
   const VID = 'scale=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p';
 
-  const args = ['-y', '-hide_banner', '-loglevel', 'warning'];
+  const args = ['-y', '-nostdin', '-hide_banner', '-loglevel', 'warning'];
   const loop = video.duration < track.duration;
-  if (loop) args.push('-stream_loop', '-1');
+  // Finite loop count (extra plays beyond the first), never -1: an infinite
+  // input can stall ffmpeg's end-of-stream handling in some builds.
+  if (loop) args.push('-stream_loop', String(Math.ceil(track.duration / video.duration) - 1));
   args.push('-i', videoFile, '-i', trackFile);
 
   let filter, audioMap;
