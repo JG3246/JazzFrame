@@ -1,0 +1,49 @@
+# Blends the chosen jazz track into each submission's video (see .github/scripts/merge-videos.mjs).
+# Runs on a schedule so new uploads are picked up within ~5–10 minutes, and can be
+# started by hand from the Actions tab ("Run workflow").
+name: Merge track audio into submissions
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/**'
+
+# Never let two merge runs overlap (the script re-claims 'processing' rows,
+# which is only safe because of this).
+concurrency:
+  group: merge-videos
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Merge pending submissions
+        env:
+          SUPABASE_URL: https://qqxlgygacojaugerzgiq.supabase.co
+          SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Public anon key (same one embedded in the site's pages) — used only
+          # until the service-role secret is configured. Current row/storage
+          # policies permit it; the service key is the long-term path.
+          ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxeGxneWdhY29qYXVnZXJ6Z2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjExMDYsImV4cCI6MjA5MzYzNzEwNn0.AMBwsXrnTL02FY0T7Da6pJfKGVU3_AfA0Ce851CTog4
+        run: |
+          if [ -n "$SERVICE_KEY" ]; then
+            export SUPABASE_KEY="$SERVICE_KEY"
+            echo "Using service role key from repository secret."
+          else
+            export SUPABASE_KEY="$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY secret not set — falling back to the public anon key."
+          fi
+          node .github/scripts/merge-videos.mjs

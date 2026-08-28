@@ -682,6 +682,8 @@
       <div class="lb-author" id="lbAuthor"></div>
       <div class="lb-track" id="lbTrack" style="font-size:0.58rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin:0.2rem 0 0.3rem"></div>
       <div class="lb-note" id="lbNote" style="font-size:0.7rem;color:var(--mist)"></div>
+      <a class="lb-download" id="lbDownload" style="display:none;margin-top:0.6rem;width:fit-content;padding:0.45rem 1rem;border:1px solid rgba(201,168,76,0.3);color:var(--gold);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;text-decoration:none" download>⬇ Download Video</a>
+      <div class="lb-preparing" id="lbPreparing" style="display:none;margin-top:0.5rem;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--mist);opacity:0.8">◌ Preparing your video with the track mixed in — back in a few minutes</div>
     </div>
   </div>
 </div>
@@ -1016,9 +1018,10 @@ async function submitVideo() {
       note: document.getElementById('noteField').value.trim(),
       track_title: selectedTrack,
       votes: 0,
+      merge_status: 'pending',
     });
 
-    showToast('Submission received — thank you', 'ok');
+    showToast('Submission received — your video with the track mixed in will be ready in a few minutes', 'ok');
     selectedTrack = null;
     document.querySelectorAll('.track-option').forEach(b => b.classList.remove('selected'));
     clearVideo();
@@ -1042,7 +1045,19 @@ async function submitVideo() {
 function openLightbox(id) {
   const sub = submissions.find(s => s.id === id);
   if (!sub) return;
-  document.getElementById('lbVideo').src = sub.video_url;
+  const merged = sub.merge_status === 'ready' && sub.merged_video_url;
+  document.getElementById('lbVideo').src = merged ? sub.merged_video_url : sub.video_url;
+  const dl = document.getElementById('lbDownload');
+  const prep = document.getElementById('lbPreparing');
+  if (merged) {
+    const fname = 'jazzera_' + (sub.author_name || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.mp4';
+    dl.href = sub.merged_video_url + '?download=' + encodeURIComponent(fname);
+    dl.style.display = 'inline-block';
+    prep.style.display = 'none';
+  } else {
+    dl.style.display = 'none';
+    prep.style.display = (sub.track_title && ['pending','processing'].includes(sub.merge_status)) ? 'block' : 'none';
+  }
   document.getElementById('lbAuthor').textContent = sub.author_name;
   document.getElementById('lbTrack').textContent = sub.track_title ? 'In response to ' + sub.track_title : '';
   document.getElementById('lbNote').textContent = sub.note || '';

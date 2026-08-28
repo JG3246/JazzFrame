@@ -123,6 +123,10 @@
     text-transform:uppercase; cursor:pointer; transition:all 0.2s;
   }
   .secondary-action:hover { border-color:var(--gold); color:var(--gold); }
+  .preparing-note {
+    margin:-1rem 0 1.6rem; font-size:0.62rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--mist); opacity:0.8;
+  }
 
   /* Card modal */
   .card-modal {
@@ -262,6 +266,10 @@ function renderPage() {
   const sub = submission;
   const sess = sessionData;
   const siteUrl = location.origin + location.pathname.replace('share.html', '');
+  const merged = sub.merge_status === 'ready' && sub.merged_video_url;
+  const videoSrc = merged ? sub.merged_video_url : sub.video_url;
+  const preparing = !merged && sub.track_title && ['pending', 'processing'].includes(sub.merge_status);
+  const dlName = 'jazzera_' + (sub.author_name || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.mp4';
 
   document.getElementById('shareContainer').innerHTML = `
     <div class="session-badge">
@@ -274,8 +282,9 @@ function renderPage() {
     ${sub.note ? `<div class="share-note">${esc(sub.note)}</div>` : '<div style="margin-bottom:1.5rem"></div>'}
 
     <div class="video-wrap">
-      <video class="share-video" id="shareVideo" src="${esc(sub.video_url)}" controls playsinline></video>
+      <video class="share-video" id="shareVideo" src="${esc(videoSrc)}" controls playsinline></video>
     </div>
+    ${preparing ? '<div class="preparing-note">◌ Preparing this video with the track mixed in — back in a few minutes</div>' : ''}
 
     ${sess?.audio_url ? `
     <div class="audio-wrap">
@@ -291,6 +300,7 @@ function renderPage() {
 
     <div class="share-actions">
       <button class="primary-action" onclick="generateCard()">◈ Generate Shareable Card</button>
+      ${merged ? `<a class="secondary-action" style="text-decoration:none" href="${esc(sub.merged_video_url)}?download=${encodeURIComponent(dlName)}" download>⬇ Download Video</a>` : ''}
       <button class="secondary-action" onclick="copyLink()">⬡ Copy Link</button>
     </div>
 
