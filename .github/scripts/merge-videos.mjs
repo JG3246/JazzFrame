@@ -10,7 +10,14 @@
 //
 // Audio balance: track is loudness-normalised to -14 LUFS (dominant); the
 // video's own sound to -25 LUFS (present but secondary, never removed).
+//
+// The work is split into two deliberately simple ffmpeg passes (audio mix,
+// then video encode with the finished audio) — a combined filtergraph proved
+// hang-prone. Each pass runs under a watchdog and reports a heartbeat
+// (stage + progress) into the row's merge_error column so progress is
+// observable from the database without GitHub log access.
 
+import { spawn } from 'node:child_process';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
@@ -23,6 +30,10 @@ const REST = `${SUPABASE_URL}/rest/v1`;
 const STORAGE = `${SUPABASE_URL}/storage/v1`;
 const HEADERS = { apikey: KEY, Authorization: `Bearer ${KEY}` };
 const TRACKS = JSON.parse(readFileSync(new URL('./tracks.json', import.meta.url), 'utf8'));
+
+const BED = 'loudnorm=I=-25:TP=-2:LRA=11';    // visitor's own sound, underneath
+const TRK = 'loudnorm=I=-14:TP=-1.5:LRA=11';  // jazz track, dominant
+const MIX = 'amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95:level=false';
 
 function ffprobe(file) {
   const out = execFileSync('ffprobe', [
@@ -64,45 +75,82 @@ async function resolveTrack(title, workdir) {
   return dest;
 }
 
-function buildFfmpegArgs(videoFile, trackFile, video, track, outFile) {
-  const BED = 'loudnorm=I=-25:TP=-2:LRA=11';    // visitor's own sound, underneath
-  const TRK = 'loudnorm=I=-14:TP=-1.5:LRA=11';  // jazz track, dominant
-  const MIX = 'amix=inputs=2:duration=longest:normalize=0,alimiter=limit=0.95:level=false';
-  const VID = 'scale=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p';
+// Run ffmpeg with a hard watchdog. Parses -progress output for a heartbeat,
+// keeps the tail of stderr for diagnostics. Rejects on timeout, non-zero
+// exit, or stall (no progress advance for stallSec).
+function runFfmpeg(label, args, { timeoutSec, onProgress }) {
+  return new Promise((resolve, reject) => {
+    const full = ['-y', '-nostdin', '-hide_banner', '-loglevel', 'warning',
+      '-progress', 'pipe:1', '-nostats', ...args];
+    console.log(`  [${label}] ffmpeg ${full.join(' ')}`);
+    const child = spawn('ffmpeg', full, { stdio: ['ignore', 'pipe', 'pipe'] });
 
-  const args = ['-y', '-nostdin', '-hide_banner', '-loglevel', 'warning'];
-  const loop = video.duration < track.duration;
-  // Finite loop count (extra plays beyond the first), never -1: an infinite
-  // input can stall ffmpeg's end-of-stream handling in some builds.
-  if (loop) args.push('-stream_loop', String(Math.ceil(track.duration / video.duration) - 1));
-  args.push('-i', videoFile, '-i', trackFile);
+    let stderrTail = '';
+    let outTimeSec = 0;
+    let lastAdvance = Date.now();
+    const stallSec = 300;
 
-  let filter, audioMap;
-  if (video.hasAudio) {
-    filter = `[0:v]${VID}[vout];[0:a]${BED}[bed];[1:a]${TRK}[trk];[bed][trk]${MIX}[aout]`;
-    audioMap = '[aout]';
-  } else {
-    filter = `[0:v]${VID}[vout];[1:a]${TRK}[aout]`;
-    audioMap = '[aout]';
-  }
-  args.push('-filter_complex', filter, '-map', '[vout]', '-map', audioMap);
+    child.stderr.on('data', d => {
+      stderrTail = (stderrTail + d.toString()).slice(-2000);
+    });
+    let buf = '';
+    child.stdout.on('data', d => {
+      buf += d.toString();
+      let idx;
+      while ((idx = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, idx).trim(); buf = buf.slice(idx + 1);
+        const m = line.match(/^out_time_ms=(\d+)/);
+        if (m) {
+          const t = Number(m[1]) / 1e6;
+          if (t > outTimeSec + 0.5) { outTimeSec = t; lastAdvance = Date.now(); }
+        }
+      }
+    });
 
-  // Output length: track length when looping, else video length.
-  args.push('-t', String(loop ? track.duration : video.duration));
+    const started = Date.now();
+    const timer = setInterval(() => {
+      const elapsed = (Date.now() - started) / 1000;
+      const stalled = (Date.now() - lastAdvance) / 1000;
+      onProgress?.(label, outTimeSec, elapsed);
+      if (elapsed > timeoutSec || stalled > stallSec) {
+        clearInterval(timer);
+        child.kill('SIGKILL');
+        const why = elapsed > timeoutSec ? `timeout after ${Math.round(elapsed)}s` : `no progress for ${Math.round(stalled)}s`;
+        reject(new Error(`[${label}] ${why} at out_time=${outTimeSec.toFixed(1)}s; stderr tail: ${stderrTail.trim().slice(-600) || '(empty)'}`));
+      }
+    }, 10000);
 
-  args.push(
-    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20',
-    '-c:a', 'aac', '-b:a', '192k', '-ar', '48000',
-    '-movflags', '+faststart',
-    outFile,
-  );
-  return args;
+    child.on('error', err => { clearInterval(timer); reject(new Error(`[${label}] spawn failed: ${err.message}`)); });
+    child.on('exit', code => {
+      clearInterval(timer);
+      if (code === 0) resolve();
+      else reject(new Error(`[${label}] ffmpeg exited ${code}; stderr tail: ${stderrTail.trim().slice(-600) || '(empty)'}`));
+    });
+  });
 }
 
 async function processSubmission(sub, workdir) {
   console.log(`processing submission ${sub.id} (track: ${sub.track_title})`);
-  await patchRow(sub.id, { merge_status: 'processing' });
 
+  // Heartbeat into the row: stage + progress, throttled to ~20s.
+  let lastBeat = 0;
+  let stage = 'starting';
+  const beat = async (detail) => {
+    const now = Date.now();
+    if (now - lastBeat < 20000) return;
+    lastBeat = now;
+    try { await patchRow(sub.id, { merge_error: `[worker ${new Date().toISOString()}] ${detail}` }); } catch { /* heartbeat only */ }
+  };
+  const onProgress = (label, t, elapsed) => {
+    stage = label;
+    console.log(`  [${label}] out_time=${t.toFixed(1)}s elapsed=${Math.round(elapsed)}s`);
+    beat(`${label}: encoded ${t.toFixed(1)}s (running ${Math.round(elapsed)}s)`);
+  };
+
+  await patchRow(sub.id, { merge_status: 'processing', merge_error: '[worker] claimed' });
+
+  stage = 'download video';
+  await beat('downloading video');
   const videoFile = path.join(workdir, `input_${sub.id}`);
   await download(sub.video_url, videoFile);
   const trackFile = await resolveTrack(sub.track_title, workdir);
@@ -110,21 +158,59 @@ async function processSubmission(sub, workdir) {
   const video = ffprobe(videoFile);
   const track = ffprobe(trackFile);
   if (!video.duration || !track.duration) throw new Error('could not read durations');
-  console.log(`  video ${video.duration.toFixed(1)}s (audio: ${video.hasAudio}), track ${track.duration.toFixed(1)}s → ${video.duration < track.duration ? 'loop video to track length' : 'single pass, video length'}`);
+  const loop = video.duration < track.duration;
+  const outDur = loop ? track.duration : video.duration;
+  const plays = loop ? Math.ceil(track.duration / video.duration) : 1;
+  console.log(`  video ${video.duration.toFixed(1)}s (audio: ${video.hasAudio}), track ${track.duration.toFixed(1)}s → ${loop ? `loop x${plays} to track length` : 'single pass, video length'}`);
 
+  // Looping uses the concat demuxer (a plain repeat-list), the most robust
+  // way to repeat a clip — no -stream_loop, which proved hang-prone here.
+  let loopedInput = ['-i', videoFile];
+  if (loop) {
+    const listFile = path.join(workdir, `list_${sub.id}.txt`);
+    writeFileSync(listFile, `file '${videoFile.replace(/'/g, "'\\''")}'\n`.repeat(plays));
+    loopedInput = ['-f', 'concat', '-safe', '0', '-i', listFile];
+  }
+
+  // Pass 1 — audio only: normalise and mix, cut to final length.
+  const mixFile = path.join(workdir, `mix_${sub.id}.m4a`);
+  const audioArgs = [];
+  if (video.hasAudio) {
+    audioArgs.push(...loopedInput, '-i', trackFile,
+      '-filter_complex', `[0:a]${BED}[bed];[1:a]${TRK}[trk];[bed][trk]${MIX}[aout]`,
+      '-map', '[aout]');
+  } else {
+    audioArgs.push('-i', trackFile, '-af', TRK, '-map', '0:a');
+  }
+  audioArgs.push('-t', String(outDur), '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', mixFile);
+  await runFfmpeg('audio mix', audioArgs, { timeoutSec: 600, onProgress });
+
+  // Pass 2 — video encode with the finished audio muxed in.
   const outFile = path.join(workdir, `merged_${sub.id}.mp4`);
-  execFileSync('ffmpeg', buildFfmpegArgs(videoFile, trackFile, video, track, outFile), { stdio: 'inherit' });
+  const videoArgs = [];
+  videoArgs.push(...loopedInput, '-i', mixFile,
+    '-map', '0:v:0', '-map', '1:a:0',
+    '-vf', 'scale=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p',
+    '-t', String(outDur),
+    '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20',
+    '-c:a', 'copy',
+    '-movflags', '+faststart',
+    outFile);
+  await runFfmpeg('video encode', videoArgs, { timeoutSec: 2100, onProgress });
 
+  stage = 'upload';
+  lastBeat = 0; await beat('uploading merged file');
   const objectPath = `videos/merged/${sub.id}.mp4`;
   const up = await fetch(`${STORAGE}/object/${objectPath}`, {
     method: 'POST',
     headers: { ...HEADERS, 'Content-Type': 'video/mp4', 'x-upsert': 'true', 'Cache-Control': 'max-age=3600' },
     body: readFileSync(outFile),
+    signal: AbortSignal.timeout(900000),
   });
   if (!up.ok) throw new Error(`storage upload failed ${up.status}: ${await up.text()}`);
 
   const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/${objectPath}`;
-  await patchRow(sub.id, { merged_video_url: publicUrl, merge_status: 'ready' });
+  await patchRow(sub.id, { merged_video_url: publicUrl, merge_status: 'ready', merge_error: null });
   console.log(`  ready: ${publicUrl}`);
 }
 
@@ -145,7 +231,9 @@ for (const sub of rows) {
   } catch (err) {
     failures++;
     console.error(`  FAILED ${sub.id}: ${err.message}`);
-    try { await patchRow(sub.id, { merge_status: 'error' }); } catch { /* leave as processing; next run retries */ }
+    try {
+      await patchRow(sub.id, { merge_status: 'error', merge_error: String(err.message).slice(0, 1500) });
+    } catch { /* leave as processing; next run retries */ }
   }
 }
 process.exit(failures ? 1 : 0);
