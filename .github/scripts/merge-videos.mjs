@@ -11,9 +11,10 @@
 // Audio balance: track is loudness-normalised to -14 LUFS (dominant); the
 // video's own sound to -25 LUFS (present but secondary, never removed).
 //
-// The work is split into two deliberately simple ffmpeg passes (audio mix,
-// then video encode with the finished audio) — a combined filtergraph proved
-// hang-prone. Each pass runs under a watchdog and reports a heartbeat
+// The work is split into single-purpose ffmpeg passes (normalise track,
+// normalise looped video sound, mix the two, then video encode muxing the
+// finished audio) — loudnorm feeding amix inside one filtergraph deadlocks
+// silently. Each pass runs under a watchdog and reports a heartbeat
 // (stage + progress) into the row's merge_error column so progress is
 // observable from the database without GitHub log access.
 
@@ -78,7 +79,7 @@ async function resolveTrack(title, workdir) {
 // Run ffmpeg with a hard watchdog. Parses -progress output for a heartbeat,
 // keeps the tail of stderr for diagnostics. Rejects on timeout, non-zero
 // exit, or stall (no progress advance for stallSec).
-function runFfmpeg(label, args, { timeoutSec, onProgress }) {
+function runFfmpeg(label, args, { timeoutSec, stallSec = 300, onProgress }) {
   return new Promise((resolve, reject) => {
     const full = ['-y', '-nostdin', '-hide_banner', '-loglevel', 'warning',
       '-progress', 'pipe:1', '-nostats', ...args];
@@ -88,7 +89,6 @@ function runFfmpeg(label, args, { timeoutSec, onProgress }) {
     let stderrTail = '';
     let outTimeSec = 0;
     let lastAdvance = Date.now();
-    const stallSec = 300;
 
     child.stderr.on('data', d => {
       stderrTail = (stderrTail + d.toString()).slice(-2000);
@@ -172,18 +172,35 @@ async function processSubmission(sub, workdir) {
     loopedInput = ['-f', 'concat', '-safe', '0', '-i', listFile];
   }
 
-  // Pass 1 — audio only: normalise and mix, cut to final length.
-  const mixFile = path.join(workdir, `mix_${sub.id}.m4a`);
-  const audioArgs = [];
+  // Audio passes. Kept deliberately separate — loudnorm feeding amix inside
+  // one filtergraph deadlocks (silent stall ~3s before the mp3 ends), so each
+  // step is its own single-purpose ffmpeg run. -vn strips the cover-art image
+  // stream some mp3s embed.
+
+  // Pass 1a — normalise the jazz track (dominant level).
+  const trkNorm = path.join(workdir, `trk_${sub.id}.m4a`);
+  await runFfmpeg('track normalise', [
+    '-i', trackFile, '-vn', '-af', TRK,
+    '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', trkNorm,
+  ], { timeoutSec: 300, stallSec: 120, onProgress });
+
+  let mixFile = trkNorm;
   if (video.hasAudio) {
-    audioArgs.push(...loopedInput, '-i', trackFile,
-      '-filter_complex', `[0:a]${BED}[bed];[1:a]${TRK}[trk];[bed][trk]${MIX}[aout]`,
-      '-map', '[aout]');
-  } else {
-    audioArgs.push('-i', trackFile, '-af', TRK, '-map', '0:a');
+    // Pass 1b — normalise the video's own (looped) sound at the bed level.
+    const bedNorm = path.join(workdir, `bed_${sub.id}.m4a`);
+    await runFfmpeg('bed normalise', [
+      ...loopedInput, '-vn', '-af', BED, '-t', String(outDur),
+      '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', bedNorm,
+    ], { timeoutSec: 600, stallSec: 120, onProgress });
+
+    // Pass 1c — mix the two pre-normalised files, track dominant by construction.
+    mixFile = path.join(workdir, `mix_${sub.id}.m4a`);
+    await runFfmpeg('audio mix', [
+      '-i', bedNorm, '-i', trkNorm,
+      '-filter_complex', `[0:a][1:a]${MIX}[aout]`, '-map', '[aout]',
+      '-t', String(outDur), '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', mixFile,
+    ], { timeoutSec: 300, stallSec: 120, onProgress });
   }
-  audioArgs.push('-t', String(outDur), '-c:a', 'aac', '-b:a', '192k', '-ar', '48000', mixFile);
-  await runFfmpeg('audio mix', audioArgs, { timeoutSec: 600, onProgress });
 
   // Pass 2 — video encode with the finished audio muxed in.
   const outFile = path.join(workdir, `merged_${sub.id}.mp4`);
