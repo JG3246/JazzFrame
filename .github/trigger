@@ -1,0 +1,3 @@
+Touch this file and push to start a merge run immediately (the workflow's
+push trigger watches .github/**; the 5-minute cron is unreliable on GitHub).
+Last manual trigger: 2026-08-29 backfill of tracks for the 4 pre-picker submissions.
