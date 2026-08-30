@@ -1259,30 +1259,38 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// ── Hero players (two tracks; only one plays at a time) ──
+// ── Site-wide media exclusivity: starting any audio/video pauses every other one ──
+// Single delegated listener (capture phase, since play/pause don't bubble) covers every
+// player on the page — present and future — with no per-element wiring needed: both hero
+// tracks, the lightbox video, and any gallery video that's ever actually played.
+document.addEventListener('play', (e) => {
+  const target = e.target;
+  if (!(target instanceof HTMLMediaElement)) return;
+  document.querySelectorAll('audio, video').forEach(m => {
+    if (m !== target && !m.paused) m.pause();
+  });
+}, true);
+
+// ── Hero players (two tracks) ──
   const heroTracks = [1, 2].map(n => ({
     n,
     audio: document.getElementById('heroAudio' + n),
-    btn: document.getElementById('heroPlayBtn' + n),
-    playing: false
+    btn: document.getElementById('heroPlayBtn' + n)
   }));
-  function heroStop(t) {
-    t.audio.pause(); t.playing = false;
-    t.btn.textContent = '▶'; t.btn.classList.remove('on');
-  }
   function toggleHeroPlay(n) {
     const t = heroTracks[n - 1];
-    if (t.playing) { heroStop(t); return; }
-    heroTracks.forEach(o => { if (o !== t && o.playing) heroStop(o); });
-    t.audio.play(); t.playing = true;
-    t.btn.textContent = '❚❚'; t.btn.classList.add('on');
+    if (t.audio.paused) t.audio.play(); else t.audio.pause();
   }
   heroTracks.forEach(t => {
     const fmt = s => `${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
     t.audio.addEventListener('timeupdate', () => {
       document.getElementById('heroElapsed' + t.n).textContent = fmt(t.audio.currentTime);
     });
-    t.audio.addEventListener('ended', () => heroStop(t));
+    // Button state follows the element's own play/pause events, so it stays
+    // correct whether the visitor, the 'ended' event, or the exclusivity
+    // listener above is what stopped this track.
+    t.audio.addEventListener('play', () => { t.btn.textContent = '❚❚'; t.btn.classList.add('on'); });
+    t.audio.addEventListener('pause', () => { t.btn.textContent = '▶'; t.btn.classList.remove('on'); });
   });
 // ── Boot ──
 window.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox')}); });
