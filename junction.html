@@ -6,7 +6,7 @@
 <title>JazzEra Junction — where users meet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#14171C;
@@ -28,7 +28,7 @@
       radial-gradient(ellipse at 20% 0%, rgba(201,162,39,0.08), transparent 55%),
       radial-gradient(ellipse at 80% 100%, rgba(60,74,74,0.25), transparent 60%);
     color:var(--parchment);
-    font-family:'Work Sans', sans-serif;
+    font-family:'DM Mono', monospace;
     -webkit-font-smoothing:antialiased;
     padding-bottom:60px;
   }
@@ -49,8 +49,8 @@
   }
 
   h1{
-    font-family:'Fraunces', serif;
-    font-weight:600;
+    font-family:'Playfair Display', serif;
+    font-weight:700;
     font-size:clamp(30px, 8vw, 40px);
     line-height:1.08;
     margin:0 0 6px;
@@ -67,7 +67,7 @@
     color:var(--parchment-dim);
     margin:0 0 22px;
     font-style:italic;
-    font-family:'Fraunces', serif;
+    font-family:'Cormorant Garamond', serif;
   }
 
   .welcome{
@@ -132,8 +132,8 @@
   }
 
   .section h2{
-    font-family:'Fraunces', serif;
-    font-weight:600;
+    font-family:'Playfair Display', serif;
+    font-weight:700;
     font-size:20px;
     color:var(--brass);
     margin:0 0 12px;
@@ -164,7 +164,7 @@
     border:1px solid rgba(237,231,217,0.2);
     border-radius:2px;
     color:var(--parchment);
-    font-family:'Work Sans', sans-serif;
+    font-family:'DM Mono', monospace;
     font-size:15px;
     padding:14px;
     resize:vertical;
@@ -189,7 +189,7 @@
     border:1px solid rgba(237,231,217,0.2);
     border-radius:2px;
     color:var(--parchment);
-    font-family:'Work Sans', sans-serif;
+    font-family:'DM Mono', monospace;
     font-size:14px;
     padding:12px 14px;
   }
@@ -205,7 +205,7 @@
     color:var(--ink);
     border:none;
     border-radius:2px;
-    font-family:'Work Sans', sans-serif;
+    font-family:'DM Mono', monospace;
     font-weight:600;
     font-size:14px;
     padding:12px 20px;
@@ -280,7 +280,7 @@
     color:var(--parchment-dim);
     font-size:14px;
     font-style:italic;
-    font-family:'Fraunces', serif;
+    font-family:'Cormorant Garamond', serif;
     border:1px dashed rgba(237,231,217,0.2);
   }
 
@@ -320,16 +320,16 @@
   <!-- JUNCTION-INTRO-V2-START : narrated slideshow intro. Requires junction-intro-voice.(mp3|wav) and images intro-01.jpg … intro-09.jpg in an /intro folder. -->
   <div class="story-panel" id="storyPanel">
     <div class="story-stage" id="storyStage">
-      <!-- slides: image if present, styled title card if not -->
-      <div class="story-slide" data-at="0.00"><img src="intro/intro-01.jpg" alt="" onerror="this.remove()"><span>Jim Green, writer</span></div>
-      <div class="story-slide" data-at="0.10"><img src="intro/intro-02.jpg" alt="" onerror="this.remove()"><span>The books</span></div>
-      <div class="story-slide" data-at="0.20"><img src="intro/intro-03.jpg" alt="" onerror="this.remove()"><span>The novels</span></div>
-      <div class="story-slide" data-at="0.30"><img src="intro/intro-04.jpg" alt="" onerror="this.remove()"><span>The silent decade</span></div>
-      <div class="story-slide" data-at="0.36"><img src="intro/intro-05.jpg" alt="" onerror="this.remove()"><span>Prometheus Bound</span></div>
-      <div class="story-slide" data-at="0.47"><img src="intro/intro-06.jpg" alt="" onerror="this.remove()"><span>&rsquo;Fifty-Eight</span></div>
-      <div class="story-slide" data-at="0.63"><img src="intro/intro-07.jpg" alt="" onerror="this.remove()"><span>The music flows</span></div>
-      <div class="story-slide" data-at="0.76"><img src="intro/intro-08.jpg" alt="" onerror="this.remove()"><span>&ldquo;Can you write code for me?&rdquo;</span></div>
-      <div class="story-slide" data-at="0.88"><img src="intro/intro-09.jpg" alt="" onerror="this.remove()"><span>Jazz returns</span></div>
+      <!-- styled title cards (no photos supplied for this slideshow) -->
+      <div class="story-slide" data-at="0.00"><span>Jim Green, writer</span></div>
+      <div class="story-slide" data-at="0.10"><span>The books</span></div>
+      <div class="story-slide" data-at="0.20"><span>The novels</span></div>
+      <div class="story-slide" data-at="0.30"><span>The silent decade</span></div>
+      <div class="story-slide" data-at="0.36"><span>Prometheus Bound</span></div>
+      <div class="story-slide" data-at="0.47"><span>&rsquo;Fifty-Eight</span></div>
+      <div class="story-slide" data-at="0.63"><span>The music flows</span></div>
+      <div class="story-slide" data-at="0.76"><span>&ldquo;Can you write code for me?&rdquo;</span></div>
+      <div class="story-slide" data-at="0.88"><span>Jazz returns</span></div>
       <div class="story-slide story-slide-logo" data-at="0.95">
         <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <g transform="translate(150,8)">
@@ -347,7 +347,7 @@
             <circle cx="-20.5" cy="37.5" r="2.2" fill="#14171C"/>
             <polygon points="-33,40 -48,43 -33,46" fill="#C9A227"/>
           </g>
-          <text x="150" y="152" text-anchor="middle" font-size="34" font-family="Fraunces, Georgia, serif" font-weight="600" letter-spacing="1" fill="#C9A227">JazzEra</text>
+          <text x="150" y="152" text-anchor="middle" font-size="34" font-family="Playfair Display, Georgia, serif" font-weight="700" letter-spacing="1" fill="#C9A227">JazzEra</text>
           <line x1="92" y1="170" x2="208" y2="170" stroke="#C9A227" stroke-width="1" opacity="0.5"/>
         </svg>
       </div>
@@ -374,10 +374,8 @@
     .story-stage{ position:relative; width:100%; aspect-ratio:16/10; background:var(--ink); }
     .story-slide{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.9s ease; }
     .story-slide.active{ opacity:1; }
-    .story-slide img{ width:100%; height:100%; object-fit:cover; display:block; }
-    .story-slide img + span{ display:none; } /* caption hides when image loads */
     .story-slide span{
-      font-family:'Fraunces', serif; font-weight:400; font-style:italic;
+      font-family:'Cormorant Garamond', serif; font-weight:300; font-style:italic;
       color:var(--parchment-dim); font-size:20px; padding:0 24px; text-align:center;
     }
     .story-slide-logo{ background:var(--ink); }
@@ -385,7 +383,7 @@
     .story-controls{ padding:14px 16px 16px; }
     .story-play{
       width:100%; background:transparent; border:1px solid var(--brass); color:var(--brass);
-      font-family:'Work Sans', sans-serif; font-size:14px; font-weight:600; letter-spacing:0.05em;
+      font-family:'DM Mono', monospace; font-size:14px; font-weight:600; letter-spacing:0.05em;
       padding:11px 14px; border-radius:2px; cursor:pointer;
     }
     .story-play:active{ background:rgba(201,162,39,0.15); }
@@ -394,7 +392,7 @@
     .story-text{ border-top:1px solid rgba(201,162,39,0.2); }
     .story-text summary{
       list-style:none; cursor:pointer; padding:11px 16px;
-      font-family:'Work Sans', sans-serif; font-size:12.5px; letter-spacing:0.08em;
+      font-family:'DM Mono', monospace; font-size:12.5px; letter-spacing:0.08em;
       text-transform:uppercase; color:var(--parchment-dim);
     }
     .story-text summary::-webkit-details-marker{ display:none; }
@@ -402,7 +400,7 @@
     .story-text[open] summary::before{ content:'\2193\00a0\00a0'; }
     .story-text-body{ padding:0 18px 18px; }
     .story-text-body p{
-      font-family:'Fraunces', serif; font-size:15.5px; line-height:1.65;
+      font-family:'Cormorant Garamond', serif; font-size:17px; line-height:1.65;
       color:var(--parchment); margin:0 0 14px;
     }
   </style>
@@ -545,15 +543,14 @@
   <a href="#" id="back-link">&larr; Back to JazzEra</a>
 </footer>
 
-<script type="module">
-  import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
   // ---- CONFIGURE THESE TWO VALUES ----
   const SUPABASE_URL = 'https://qqxlgygacojaugerzgiq.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxeGxneWdhY29qYXVnZXJ6Z2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjExMDYsImV4cCI6MjA5MzYzNzEwNn0.AMBwsXrnTL02FY0T7Da6pJfKGVU3_AfA0Ce851CTog4';
   // -------------------------------------
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const form = document.getElementById('pin-form');
   const messageInput = document.getElementById('pin-message');
