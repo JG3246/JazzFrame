@@ -550,7 +550,7 @@
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxeGxneWdhY29qYXVnZXJ6Z2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjExMDYsImV4cCI6MjA5MzYzNzEwNn0.AMBwsXrnTL02FY0T7Da6pJfKGVU3_AfA0Ce851CTog4';
   // -------------------------------------
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   const form = document.getElementById('pin-form');
   const messageInput = document.getElementById('pin-message');
@@ -588,7 +588,7 @@
   }
 
   async function loadPins(){
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from('junction_messages')
       .select('*')
       .order('created_at', { ascending: false })
@@ -608,7 +608,7 @@
     submitBtn.disabled = true;
     submitBtn.textContent = 'Pinning...';
 
-    const { error } = await supabase.from('junction_messages').insert({
+    const { error } = await sb.from('junction_messages').insert({
       message: message,
       author_name: nameInput.value.trim() || null
     });
@@ -645,7 +645,7 @@
     contactSubmit.disabled = true;
     contactSubmit.textContent = 'Sending...';
 
-    const { error } = await supabase.from('junction_contact').insert({
+    const { error } = await sb.from('junction_contact').insert({
       name: name,
       email: email,
       message: message
