@@ -128,30 +128,6 @@
     text-transform:uppercase; color:var(--mist); opacity:0.8;
   }
 
-  /* Card modal */
-  .card-modal {
-    position:fixed; inset:0; background:rgba(10,8,4,0.96); z-index:600;
-    display:flex; align-items:center; justify-content:center; padding:2rem;
-    opacity:0; pointer-events:none; transition:opacity 0.3s;
-  }
-  .card-modal.open { opacity:1; pointer-events:all; }
-  .card-modal-inner { max-width:500px; width:100%; }
-  .card-modal-title { font-family:'Playfair Display',serif; font-size:1.1rem; font-style:italic; margin-bottom:1rem; }
-  .card-preview { width:100%; aspect-ratio:1/1; display:block; border:1px solid rgba(201,168,76,0.2); margin-bottom:1rem; }
-  .card-modal-btns { display:flex; gap:0.8rem; }
-  .card-dl-btn {
-    flex:1; padding:0.75rem; background:var(--gold); color:var(--ink);
-    border:none; font-family:'DM Mono',monospace; font-size:0.7rem;
-    letter-spacing:0.18em; text-transform:uppercase; cursor:pointer; font-weight:500; transition:background 0.2s;
-  }
-  .card-dl-btn:hover { background:var(--cream); }
-  .card-close-btn {
-    padding:0.75rem 1.2rem; background:transparent;
-    border:1px solid rgba(201,168,76,0.3); color:var(--mist);
-    font-family:'DM Mono',monospace; font-size:0.7rem; letter-spacing:0.18em;
-    text-transform:uppercase; cursor:pointer; transition:all 0.2s;
-  }
-  .card-close-btn:hover { border-color:var(--gold); color:var(--gold); }
 
   /* Meta footer */
   .share-meta {
@@ -211,16 +187,6 @@
   </div>
 </main>
 
-<div class="card-modal" id="cardModal">
-  <div class="card-modal-inner">
-    <div class="card-modal-title" id="cardModalTitle">Your JazzEra card</div>
-    <canvas class="card-preview" id="cardCanvas" width="600" height="600"></canvas>
-    <div class="card-modal-btns">
-      <button class="card-dl-btn" onclick="downloadCard()">⬇ Download Card</button>
-      <button class="card-close-btn" onclick="document.getElementById('cardModal').classList.remove('open')">Close</button>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
@@ -299,8 +265,7 @@ function renderPage() {
     </div>` : ''}
 
     <div class="share-actions">
-      <button class="primary-action" onclick="generateCard()">◈ Generate Shareable Card</button>
-      ${merged ? `<a class="secondary-action" style="text-decoration:none" href="${esc(sub.merged_video_url)}?download=${encodeURIComponent(dlName)}" download>⬇ Download Video</a>` : ''}
+      ${merged ? `<a class="primary-action" style="text-decoration:none" href="${esc(sub.merged_video_url)}?download=${encodeURIComponent(dlName)}" download>⬇ Download Video</a>` : ''}
       <button class="secondary-action" onclick="copyLink()">⬡ Copy Link</button>
     </div>
 
@@ -371,91 +336,6 @@ function copyLink() {
   } else {
     prompt('Copy this link:', url);
   }
-}
-
-function generateCard() {
-  const sub = submission;
-  const sess = sessionData;
-  const canvas = document.getElementById('cardCanvas');
-  const ctx = canvas.getContext('2d');
-  const W = 600, H = 600;
-  canvas.width = W; canvas.height = H;
-
-  const draw = () => {
-    ctx.fillStyle = '#0a0804';
-    ctx.fillRect(0, 0, W, H);
-
-    ctx.strokeStyle = 'rgba(201,168,76,0.4)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(24, 24, W-48, H-48);
-
-    const grad = ctx.createLinearGradient(24, 0, W-24, 0);
-    grad.addColorStop(0, '#b54a2f');
-    grad.addColorStop(1, '#c9a84c');
-    ctx.fillStyle = grad;
-    ctx.fillRect(24, 24, W-48, 3);
-
-    const vid = document.getElementById('shareVideo');
-    const imgY = 80, imgH = 280;
-    ctx.save();
-    ctx.globalAlpha = 0.72;
-    try { ctx.drawImage(vid, 40, imgY, W-80, imgH); } catch(e) {}
-    ctx.restore();
-
-    const imgGrad = ctx.createLinearGradient(0, imgY, 0, imgY+imgH);
-    imgGrad.addColorStop(0, 'transparent');
-    imgGrad.addColorStop(1, 'rgba(10,8,4,0.9)');
-    ctx.fillStyle = imgGrad;
-    ctx.fillRect(40, imgY, W-80, imgH);
-
-    ctx.fillStyle = '#b54a2f';
-    ctx.font = '500 13px monospace';
-    ctx.fillText('JAZZERA · VISUAL SESSION', 40, 64);
-
-    ctx.fillStyle = '#f5f0e8';
-    ctx.font = 'italic bold 38px Georgia, serif';
-    ctx.fillText(sub.author_name, 40, 422);
-
-    ctx.fillStyle = '#c9a84c';
-    ctx.font = '14px monospace';
-    ctx.fillText(sub.track_title || sess?.track_title || 'JazzEra Session', 40, 452);
-
-    if (sub.note) {
-      ctx.fillStyle = '#8a9aaa';
-      ctx.font = 'italic 15px Georgia, serif';
-      const words = sub.note.split(' ');
-      let line = '', y = 490;
-      for (const word of words) {
-        const test = line + word + ' ';
-        if (ctx.measureText(test).width > W-80 && line) {
-          ctx.fillText(line.trim(), 40, y); line = word + ' '; y += 22;
-          if (y > 545) break;
-        } else { line = test; }
-      }
-      if (y <= 545) ctx.fillText(line.trim(), 40, y);
-    }
-
-    ctx.fillStyle = 'rgba(201,168,76,0.45)';
-    ctx.font = '11px monospace';
-    ctx.fillText(location.href, 40, 576);
-
-    ctx.fillStyle = 'rgba(201,168,76,0.25)';
-    ctx.fillRect(24, H-27, W-48, 1);
-  };
-
-  draw();
-  document.getElementById('cardModalTitle').textContent = `${sub.author_name}'s JazzEra card`;
-  document.getElementById('cardModal').classList.add('open');
-}
-
-function downloadCard() {
-  const canvas = document.getElementById('cardCanvas');
-  const name = submission?.author_name?.replace(/\s+/g,'_') || 'jazzera';
-  const a = document.createElement('a');
-  a.download = `jazzera_${name}.png`;
-  a.href = canvas.toDataURL('image/png');
-  a.click();
-  showToast('Card downloaded', 'ok');
 }
 
 function showToast(msg, type='ok') {
