@@ -207,7 +207,11 @@ async function processSubmission(sub, workdir) {
   const videoArgs = [];
   videoArgs.push(...loopedInput, '-i', mixFile,
     '-map', '0:v:0', '-map', '1:a:0',
-    '-vf', 'scale=ceil(iw/2)*2:ceil(ih/2)*2,format=yuv420p',
+    // Cap at 1080p (never upscales smaller videos) before rounding to even
+    // dimensions - without this, a very high-resolution source (e.g. 8K)
+    // re-encoded and looped to fill a long track produces a file too large
+    // for Storage to accept.
+    '-vf', 'scale=1920:1080:force_original_aspect_ratio=decrease,scale=trunc(iw/2)*2:trunc(ih/2)*2,format=yuv420p',
     '-t', String(outDur),
     '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20',
     '-c:a', 'copy',
