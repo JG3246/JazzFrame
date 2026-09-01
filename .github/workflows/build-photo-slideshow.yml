@@ -1,0 +1,88 @@
+# Turns a series of still photos into a slideshow-video submission, using
+# .github/scripts/build-photo-slideshow.mjs. Reusable for future photo
+# series: upload the source images (in playback order, sorted by filename)
+# to Storage under videos/<scratch_prefix>/, then re-run this workflow from
+# the Actions tab with new inputs. The resulting video is inserted as a
+# normal submissions row, so the existing merge-videos workflow picks it up
+# and blends the chosen track into it exactly like any visitor upload.
+name: Build photo-slideshow submission
+
+on:
+  workflow_dispatch:
+    inputs:
+      scratch_prefix:
+        description: 'Path under the videos bucket holding the source images, e.g. _scratch/day-in-the-garden'
+        required: true
+        default: '_scratch/day-in-the-garden'
+      duration_per_image:
+        description: 'Seconds each photo is shown'
+        required: false
+        default: '3.5'
+      crossfade_duration:
+        description: 'Seconds of crossfade between photos'
+        required: false
+        default: '0.8'
+      author_name:
+        description: 'Author name on the submission'
+        required: false
+        default: 'Admin'
+      note:
+        description: 'Note shown on the submission (140 char site limit)'
+        required: false
+        default: "A day in the garden — dawn to dusk, 7 April 2020"
+      track_title:
+        description: 'Exact track title to assign (must match a homepage track), or leave blank to insert without one'
+        required: false
+        default: 'Let The Music Begin....'
+      session_id:
+        description: 'Session ID to attach the submission to'
+        required: false
+        default: 'session_014'
+      output_slug:
+        description: 'Short filename slug for the generated video'
+        required: false
+        default: 'garden_day_slideshow'
+      cleanup_source:
+        description: 'Delete the scratch source images from Storage once the slideshow is built'
+        required: false
+        default: 'true'
+  push:
+    paths:
+      - '.github/scripts/build-photo-slideshow.mjs'
+      - '.github/workflows/build-photo-slideshow.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+
+      - name: Build slideshow and create submission
+        env:
+          SUPABASE_URL: https://qqxlgygacojaugerzgiq.supabase.co
+          SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFxeGxneWdhY29qYXVnZXJ6Z2lxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgwNjExMDYsImV4cCI6MjA5MzYzNzEwNn0.AMBwsXrnTL02FY0T7Da6pJfKGVU3_AfA0Ce851CTog4
+          SCRATCH_PREFIX: ${{ github.event.inputs.scratch_prefix || '_scratch/day-in-the-garden' }}
+          DURATION_PER_IMAGE: ${{ github.event.inputs.duration_per_image || '3.5' }}
+          CROSSFADE_DURATION: ${{ github.event.inputs.crossfade_duration || '0.8' }}
+          AUTHOR_NAME: ${{ github.event.inputs.author_name || 'Admin' }}
+          NOTE: ${{ github.event.inputs.note || 'A day in the garden — dawn to dusk, 7 April 2020' }}
+          TRACK_TITLE: ${{ github.event.inputs.track_title || 'Let The Music Begin....' }}
+          SESSION_ID: ${{ github.event.inputs.session_id || 'session_014' }}
+          OUTPUT_SLUG: ${{ github.event.inputs.output_slug || 'garden_day_slideshow' }}
+          CLEANUP_SOURCE: ${{ github.event.inputs.cleanup_source || 'true' }}
+        run: |
+          if [ -n "$SERVICE_KEY" ]; then
+            export SUPABASE_KEY="$SERVICE_KEY"
+          else
+            export SUPABASE_KEY="$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY secret not set — falling back to the public anon key."
+          fi
+          node .github/scripts/build-photo-slideshow.mjs
