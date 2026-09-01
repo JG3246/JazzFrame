@@ -54,6 +54,7 @@
   .table-row:hover{background:rgba(201,168,76,0.03);}
   .invite-cols{grid-template-columns:2fr 1.5fr 1fr 1fr 80px;}
   .submit-cols{grid-template-columns:1.5fr 1fr 2fr 80px 80px;}
+  .full-submit-cols{grid-template-columns:110px 1.3fr 1.3fr 1fr 80px;}
   .badge{display:inline-block;padding:0.15rem 0.5rem;font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;}
   .badge-used{background:rgba(201,168,76,0.15);color:var(--gold);}
   .badge-unused{background:rgba(42,50,64,0.8);color:var(--mist);}
@@ -93,7 +94,8 @@
   #audioUploadInput{display:none;}
 
   /* Video grid (submissions) */
-  .vid-thumb{width:80px;height:50px;object-fit:cover;border:1px solid rgba(201,168,76,0.15);}
+  .vid-thumb{width:80px;height:50px;object-fit:cover;border:1px solid rgba(201,168,76,0.15);cursor:pointer;display:block;transition:border-color 0.2s;}
+  .vid-thumb:hover{border-color:var(--gold);}
 
   /* Toast */
   .toast{position:fixed;bottom:2rem;right:2rem;padding:0.75rem 1.4rem;font-size:0.7rem;letter-spacing:0.1em;transform:translateY(150%);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);z-index:999;}
@@ -246,8 +248,8 @@
     <div class="page-title">Submissions</div>
     <div class="page-sub">All video submissions for this session</div>
     <div class="table-wrap">
-      <div class="table-head submit-cols">
-        <span>Author</span><span>Submitted</span><span>Note</span><span>Votes</span><span></span>
+      <div class="table-head full-submit-cols">
+        <span>Preview</span><span>Author</span><span>Track</span><span>Date</span><span></span>
       </div>
       <div id="allSubmissions"></div>
     </div>
@@ -486,19 +488,53 @@ function submissionRow(s) {
   </div>`;
 }
 
+function fullSubmissionRow(s) {
+  const previewUrl = s.merge_status === 'ready' && s.merged_video_url ? s.merged_video_url : s.video_url;
+  return `<div class="table-row full-submit-cols">
+    <span><video class="vid-thumb" src="${esc(previewUrl)}#t=0.5" muted playsinline preload="metadata"
+      onclick="window.open('${esc(previewUrl)}', '_blank')" title="Click to open and preview"></video></span>
+    <span style="font-size:0.72rem">${esc(s.author_name)}</span>
+    <span style="font-size:0.68rem;color:var(--mist)">${s.track_title ? esc(s.track_title) : '—'}</span>
+    <span style="font-size:0.62rem;color:rgba(138,154,170,0.6)">${timeAgo(s.created_at)}</span>
+    <span><button class="action-btn del" onclick="deleteSubmission('${s.id}')">Delete</button></span>
+  </div>`;
+}
+
 function renderAllSubmissions() {
   const el = document.getElementById('allSubmissions');
   if (!submissions.length) { el.innerHTML = '<div style="padding:2rem;text-align:center;font-size:0.65rem;color:var(--mist)">No submissions yet.</div>'; return; }
-  el.innerHTML = submissions.map(s => submissionRow(s)).join('');
+  el.innerHTML = submissions.map(s => fullSubmissionRow(s)).join('');
+}
+
+// Extracts the storage-relative path from a Supabase public object URL
+// (".../object/public/<bucket>/<path>" -> "<path>"), or null if the URL
+// is empty or doesn't belong to that bucket.
+function storagePathFromUrl(url, bucket) {
+  if (!url) return null;
+  const marker = `/${bucket}/`;
+  const idx = url.indexOf(marker);
+  return idx === -1 ? null : url.slice(idx + marker.length);
+}
+
+// Removes every file in Storage tied to a submission - the original video
+// and, if a merge has run, the merged video too - the same cleanup done
+// manually during the legacy-audio fix. Safe to call with paths that don't
+// exist (Storage simply reports nothing to remove).
+async function deleteSubmissionFiles(sub) {
+  if (!sub) return;
+  const paths = [storagePathFromUrl(sub.video_url, 'videos'), storagePathFromUrl(sub.merged_video_url, 'videos')]
+    .filter(Boolean);
+  if (!paths.length) return;
+  const { error } = await sb.storage.from('videos').remove(paths);
+  if (error) console.error('Storage cleanup failed:', error);
 }
 
 async function deleteSubmission(id) {
-  if (!confirm('Delete this submission? This cannot be undone.')) return;
   const sub = submissions.find(s => s.id === id);
-  if (sub?.video_url) {
-    const path = sub.video_url.split('/videos/')[1];
-    if (path) await sb.storage.from('videos').remove([path]);
-  }
+  if (!sub) return;
+  const hasMerged = sub.merge_status === 'ready' && sub.merged_video_url;
+  if (!confirm(`Delete ${sub.author_name}'s submission? This removes it permanently, along with its video${hasMerged ? ' and merged video' : ''} in Storage. This cannot be undone.`)) return;
+  await deleteSubmissionFiles(sub);
   await sb.from('submissions').delete().eq('id', id);
   showToast('Submission deleted', 'ok');
   await loadSubmissions();
@@ -506,12 +542,9 @@ async function deleteSubmission(id) {
 }
 
 async function clearAllSubmissions() {
-  if (!confirm(`Delete ALL submissions for ${SESSION_ID}? This cannot be undone.`)) return;
+  if (!confirm(`Delete ALL submissions for ${SESSION_ID}? This removes every video and merged video in Storage too. This cannot be undone.`)) return;
   for (const s of submissions) {
-    if (s.video_url) {
-      const path = s.video_url.split('/videos/')[1];
-      if (path) await sb.storage.from('videos').remove([path]);
-    }
+    await deleteSubmissionFiles(s);
   }
   await sb.from('submissions').delete().eq('session_id', SESSION_ID);
   showToast('All submissions deleted', 'ok');
