@@ -30,7 +30,12 @@ if (!SUPABASE_URL || !KEY) { console.error('SUPABASE_URL / SUPABASE_KEY not set'
 const REST = `${SUPABASE_URL}/rest/v1`;
 const STORAGE = `${SUPABASE_URL}/storage/v1`;
 const HEADERS = { apikey: KEY, Authorization: `Bearer ${KEY}` };
-const TRACKS = JSON.parse(readFileSync(new URL('./tracks.json', import.meta.url), 'utf8'));
+const CATALOG = JSON.parse(readFileSync(new URL('../../tracks-catalog.json', import.meta.url), 'utf8'));
+const TRACKS = {};
+for (const t of CATALOG.tracks) {
+  TRACKS[t.title] = { repo: t.file };
+  if (t.featured) TRACKS[t.featuredTitle] = { url: t.featuredUrl };
+}
 
 const BED = 'loudnorm=I=-25:TP=-2:LRA=11';    // visitor's own sound, underneath
 const TRK = 'loudnorm=I=-14:TP=-1.5:LRA=11';  // jazz track, dominant

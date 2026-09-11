@@ -412,6 +412,79 @@
     .session-hero, .gallery-section { padding-left:1.5rem; padding-right:1.5rem; }
     .gallery-header { flex-direction:column; align-items:flex-start; gap:1rem; }
   }
+
+  /* ── CATALOGUE ── */
+  .catalogue-section {
+    padding: 4rem 3rem; border-bottom: 1px solid rgba(201,168,76,0.12);
+  }
+  .catalogue-heading { font-family:'Playfair Display',serif; font-size:1.8rem; font-style:italic; margin-bottom:0.6rem; }
+  .catalogue-note { font-size:0.68rem; color:var(--mist); line-height:1.7; margin-bottom:1.8rem; max-width:640px; }
+
+  .portfolio-tabs { display:flex; gap:0.6rem; flex-wrap:wrap; margin-bottom:1.6rem; }
+  .portfolio-tab {
+    font-family:'DM Mono',monospace; font-size:0.64rem; letter-spacing:0.1em; text-transform:uppercase;
+    padding:0.6rem 1.1rem; border:1px solid rgba(201,168,76,0.25); background:transparent;
+    color:var(--mist); cursor:pointer; transition:all 0.2s; text-align:left;
+  }
+  .portfolio-tab.on { border-color:var(--gold); color:var(--gold); background:rgba(201,168,76,0.06); }
+  .portfolio-tab:disabled { opacity:0.4; cursor:default; }
+  .portfolio-tab .pt-name { display:block; font-family:'Playfair Display',serif; font-style:italic; font-size:0.78rem; margin-bottom:0.15rem; }
+  .portfolio-tab .pt-tag { display:block; font-size:0.56rem; letter-spacing:0.04em; text-transform:none; color:rgba(138,154,170,0.7); max-width:220px; }
+
+  .catalogue-search {
+    max-width:360px; margin-bottom:1.4rem;
+  }
+
+  .catalogue-list {
+    max-width: 760px; max-height: 480px; overflow-y: auto;
+    border:1px solid rgba(201,168,76,0.15);
+  }
+  .catalogue-row {
+    display:flex; align-items:center; gap:1rem; padding:0.75rem 1.1rem;
+    border-bottom:1px solid rgba(201,168,76,0.08); transition:background 0.15s;
+  }
+  .catalogue-row:last-child { border-bottom:none; }
+  .catalogue-row:hover { background:rgba(201,168,76,0.04); }
+  .catalogue-row.chosen { background:rgba(201,168,76,0.1); }
+  .cat-num { font-family:'DM Mono',monospace; font-size:0.62rem; color:var(--mist); width:2.2rem; flex-shrink:0; }
+  .cat-play {
+    width:30px; height:30px; border-radius:50%; border:1.5px solid var(--gold); background:transparent;
+    color:var(--gold); display:flex; align-items:center; justify-content:center; cursor:pointer;
+    flex-shrink:0; font-size:0.7rem; transition:all 0.2s;
+  }
+  .cat-play:hover, .cat-play.on { background:var(--gold); color:var(--ink); }
+  .cat-title { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:0.95rem; flex:1; min-width:0; }
+  .cat-badge {
+    font-size:0.5rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--rust);
+    border:1px solid rgba(181,74,47,0.4); padding:0.15rem 0.4rem; flex-shrink:0;
+  }
+  .cat-choose {
+    font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase;
+    background:transparent; border:1px solid var(--gold); color:var(--gold);
+    padding:0.4rem 0.8rem; cursor:pointer; transition:all 0.2s; flex-shrink:0; white-space:nowrap;
+  }
+  .cat-choose:hover { background:var(--gold); color:var(--ink); }
+  .cat-choose.chosen { background:var(--gold); color:var(--ink); }
+  .cat-empty { padding:2rem; text-align:center; color:var(--mist); font-size:0.7rem; }
+
+  .catalogue-coming-soon {
+    max-width:760px; padding:3rem 2rem; text-align:center; border:1px dashed rgba(201,168,76,0.3);
+    font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1rem; color:rgba(245,240,232,0.7);
+  }
+
+  .selected-track-strip {
+    max-width:760px; margin-top:1.2rem; padding:0.9rem 1.2rem;
+    border:1px solid rgba(201,168,76,0.3); background:rgba(201,168,76,0.06);
+    font-size:0.68rem; color:var(--cream); display:none; align-items:center; justify-content:space-between; gap:1rem;
+  }
+  .selected-track-strip.visible { display:flex; }
+  .selected-track-strip .stt-label { color:var(--mist); }
+  .selected-track-strip .stt-title { font-family:'Playfair Display',serif; font-style:italic; color:var(--gold); }
+
+  @media(max-width:600px) {
+    .catalogue-section { padding: 3rem 1.5rem; }
+    .cat-title { font-size:0.85rem; }
+  }
 </style>
 </head>
 <body>
@@ -530,7 +603,7 @@
           <audio id="heroAudio1" preload="metadata" src="https://qqxlgygacojaugerzgiq.supabase.co/storage/v1/object/public/assets/Jazz%20in%20Ordinary%20Time%2026%20Copy.mp3"></audio>
           <div class="hero-track-title">Let The Music Begin....</div>
           <div class="hero-track-meta">AI-generated</div>
-          <p class="hero-track-caption">The track that opens the JazzEra story.</p>
+          <p class="hero-track-caption">The track that opens the JazzEra story — one of fifty-three below.</p>
           <div class="hero-player-row">
             <button class="hero-play-btn" id="heroPlayBtn1" onclick="toggleHeroPlay(1)">▶</button>
             <span class="hero-elapsed" id="heroElapsed1">0:00</span>
@@ -538,23 +611,40 @@
           </div>
         </div>
         <div class="hero-player">
-          <audio id="heroAudio2" preload="metadata" src="tracks/Jazz%20in%20Ordinary%20Time%2009.mp3"></audio>
-          <div class="hero-track-title">Jazz in Ordinary Time — No. 09</div>
-          <div class="hero-track-meta">AI-generated</div>
-          <p class="hero-track-caption">From the Jazz in Ordinary Time catalogue — one track a week.</p>
+          <div class="hero-track-title">The full catalogue</div>
+          <div class="hero-track-meta">53 tracks &amp; growing</div>
+          <p class="hero-track-caption">Every track is open to listen, choose, and upload against — browse the whole Portfolio #1 catalogue below.</p>
           <div class="hero-player-row">
-            <button class="hero-play-btn" id="heroPlayBtn2" onclick="toggleHeroPlay(2)">▶</button>
-            <span class="hero-elapsed" id="heroElapsed2">0:00</span>
-            <button class="hero-listen-btn" onclick="toggleHeroPlay(2)">Listen</button>
+            <button class="hero-listen-btn" onclick="document.getElementById('catalogueSection').scrollIntoView({behavior:'smooth'})" style="margin-left:0">Browse the catalogue ↓</button>
           </div>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- Catalogue -->
+  <section class="catalogue-section" id="catalogueSection">
+    <h2 class="catalogue-heading">The AI Jazz catalogue</h2>
+    <p class="catalogue-note">Listen to any track, then choose it as the one your video responds to. Portfolio #1 is the original 53-track "Jazz in Ordinary Time" set; Portfolio #2 will bring a second 53 built around unusual instrument combinations and regional/traditional jazz blends.</p>
+
+    <div class="portfolio-tabs" id="portfolioTabs"></div>
+
+    <input class="field-input catalogue-search" id="catalogueSearch" type="text" placeholder="Search by track number or title…" oninput="renderCatalogue()">
+
+    <div class="catalogue-list" id="catalogueList">
+      <div class="cat-empty">Loading catalogue…</div>
+    </div>
+
+    <div class="selected-track-strip" id="selectedTrackStrip">
+      <span><span class="stt-label">Responding to:</span> <span class="stt-title" id="selectedTrackName"></span></span>
+      <button class="hero-listen-btn" style="margin-left:0" onclick="document.getElementById('videoInput').click()">Upload your video ↓</button>
+    </div>
+  </section>
+
 <!-- Upload -->
   <section class="upload-section">
     <h2 class="upload-section-heading">Listen to the music and upload your response.</h2>
-    <p class="upload-section-note">Upload a short video — up to 2 minutes. Film, found footage, abstract, documentary — anything the music suggests. MP4 or MOV preferred.</p>
+    <p class="upload-section-note">Upload a short video — up to 2 minutes. Film, found footage, abstract, documentary — anything the music suggests. MP4 or MOV preferred. Choose the track you're responding to from the catalogue above.</p>
 
     <input type="file" id="videoInput" accept="video/*" onchange="handleFileSelect(this)">
 
@@ -573,9 +663,8 @@
 
     <div class="field-row">
       <label class="field-label">Which track is your video responding to?</label>
-      <div class="track-options" id="trackOptions">
-        <button type="button" class="track-option" data-track="Let The Music Begin...." onclick="selectTrack(this)">Let The Music Begin....</button>
-        <button type="button" class="track-option" data-track="Jazz in Ordinary Time — No. 09" onclick="selectTrack(this)">Jazz in Ordinary Time — No. 09</button>
+      <div class="track-options" id="trackOptions" style="margin-bottom:0.6rem;">
+        <span style="font-size:0.68rem;color:var(--mist);" id="uploadTrackHint">Choose a track from the catalogue above — <a href="#catalogueSection" style="color:var(--gold);" onclick="document.getElementById('catalogueSection').scrollIntoView({behavior:'smooth'});return false;">jump back up</a>.</span>
       </div>
     </div>
 
@@ -713,6 +802,7 @@ async function init() {
   buildWaveform();
   await loadSession();
   await loadSubmissions();
+  await loadCatalogue();
   subscribeRealtime();
 }
 
@@ -871,13 +961,111 @@ async function vote(id, btn) {
   await sb.from('submissions').update({ votes: newVotes }).eq('id', id);
 }
 
+// ── Catalogue ──
+let catalogue = { portfolios: [], tracks: [] };
+let activePortfolio = 1;
+let catalogueAudio = null;
+let catalogueAudioTrackFile = null;
+
+async function loadCatalogue() {
+  try {
+    const res = await fetch('tracks-catalog.json', { cache: 'no-store' });
+    catalogue = await res.json();
+  } catch (e) {
+    console.error('catalogue load failed', e);
+    document.getElementById('catalogueList').innerHTML = '<div class="cat-empty">Couldn\'t load the catalogue — please refresh.</div>';
+    return;
+  }
+  activePortfolio = (catalogue.portfolios.find(p => p.status === 'live') || catalogue.portfolios[0] || {}).id || 1;
+  renderPortfolioTabs();
+  renderCatalogue();
+}
+
+function renderPortfolioTabs() {
+  const wrap = document.getElementById('portfolioTabs');
+  wrap.innerHTML = catalogue.portfolios.map(p => `
+    <button type="button" class="portfolio-tab ${p.id === activePortfolio ? 'on' : ''}" ${p.status !== 'live' ? 'disabled' : ''}
+      onclick="setActivePortfolio(${p.id})">
+      <span class="pt-name">${esc(p.name)}${p.status !== 'live' ? ' — coming soon' : ''}</span>
+      <span class="pt-tag">${esc(p.tagline)}</span>
+    </button>
+  `).join('');
+}
+
+function setActivePortfolio(id) {
+  activePortfolio = id;
+  renderPortfolioTabs();
+  renderCatalogue();
+}
+
+function renderCatalogue() {
+  const list = document.getElementById('catalogueList');
+  const portfolio = catalogue.portfolios.find(p => p.id === activePortfolio);
+  if (portfolio && portfolio.status !== 'live') {
+    list.innerHTML = `<div class="catalogue-coming-soon">${esc(portfolio.tagline)} — check back soon.</div>`;
+    return;
+  }
+  const q = (document.getElementById('catalogueSearch').value || '').trim().toLowerCase();
+  const tracks = catalogue.tracks.filter(t => t.portfolio === activePortfolio);
+  const filtered = q
+    ? tracks.filter(t => t.title.toLowerCase().includes(q) || String(t.number).includes(q) || (t.featuredTitle || '').toLowerCase().includes(q))
+    : tracks;
+  if (!filtered.length) {
+    list.innerHTML = '<div class="cat-empty">No tracks match that search.</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(t => {
+    const displayTitle = t.featured ? `${esc(t.featuredTitle)}` : esc(t.title);
+    const submitTitle = t.featured ? t.featuredTitle : t.title;
+    const isChosen = selectedTrack === submitTitle;
+    return `
+    <div class="catalogue-row ${isChosen ? 'chosen' : ''}" data-track="${esc(submitTitle)}">
+      <span class="cat-num">${String(t.number).padStart(2, '0')}</span>
+      <button type="button" class="cat-play" onclick="toggleCataloguePlay('${esc(t.file).replace(/'/g, "\\'")}', this)">▶</button>
+      <span class="cat-title">${displayTitle}</span>
+      ${t.featured ? '<span class="cat-badge">Featured</span>' : ''}
+      <button type="button" class="cat-choose ${isChosen ? 'chosen' : ''}" onclick="chooseTrack('${esc(submitTitle).replace(/'/g, "\\'")}', this)">${isChosen ? '✓ Chosen' : 'Choose'}</button>
+    </div>`;
+  }).join('');
+}
+
+function toggleCataloguePlay(file, btn) {
+  const allBtns = document.querySelectorAll('.cat-play');
+  if (catalogueAudio && catalogueAudioTrackFile === file && !catalogueAudio.paused) {
+    catalogueAudio.pause();
+    return;
+  }
+  if (!catalogueAudio) {
+    catalogueAudio = new Audio();
+    catalogueAudio.addEventListener('play', () => { allBtns.forEach(b => b.classList.remove('on')); btn.classList.add('on'); btn.textContent = '❚❚'; });
+    catalogueAudio.addEventListener('pause', () => { btn.classList.remove('on'); btn.textContent = '▶'; });
+    catalogueAudio.addEventListener('ended', () => { btn.classList.remove('on'); btn.textContent = '▶'; });
+  }
+  if (catalogueAudioTrackFile !== file) {
+    allBtns.forEach(b => { b.classList.remove('on'); b.textContent = '▶'; });
+    catalogueAudio.src = encodeURI(file);
+    catalogueAudioTrackFile = file;
+  }
+  catalogueAudio.play();
+}
+
+function chooseTrack(title, btn) {
+  selectedTrack = title;
+  document.querySelectorAll('.catalogue-row').forEach(r => r.classList.toggle('chosen', r.dataset.track === title));
+  document.querySelectorAll('.cat-choose').forEach(b => {
+    const chosen = b.closest('.catalogue-row').dataset.track === title;
+    b.classList.toggle('chosen', chosen);
+    b.textContent = chosen ? '✓ Chosen' : 'Choose';
+  });
+  const strip = document.getElementById('selectedTrackStrip');
+  strip.classList.add('visible');
+  document.getElementById('selectedTrackName').textContent = title;
+  updateSubmitState();
+  showToast('Track chosen — scroll down to upload your video', 'ok');
+}
+
 // ── Upload ──
 let selectedTrack = null;
-function selectTrack(btn) {
-  selectedTrack = btn.dataset.track;
-  document.querySelectorAll('.track-option').forEach(b => b.classList.toggle('selected', b === btn));
-  updateSubmitState();
-}
 function updateSubmitState() {
   document.getElementById('submitBtn').disabled = !(selectedFile && selectedTrack);
 }
@@ -1078,8 +1266,8 @@ document.addEventListener('play', (e) => {
   });
 }, true);
 
-// ── Hero players (two tracks) ──
-  const heroTracks = [1, 2].map(n => ({
+// ── Hero player (featured track) ──
+  const heroTracks = [1].map(n => ({
     n,
     audio: document.getElementById('heroAudio' + n),
     btn: document.getElementById('heroPlayBtn' + n)

@@ -1,0 +1,339 @@
+{
+  "portfolios": [
+    {
+      "id": 1,
+      "name": "AI Jazz Portfolio #1",
+      "tagline": "Jazz in Ordinary Time — the original 53-track catalogue",
+      "status": "live"
+    },
+    {
+      "id": 2,
+      "name": "AI Jazz Portfolio #2",
+      "tagline": "Unusual instrument combinations & regional/traditional jazz blends — coming soon",
+      "status": "coming_soon"
+    }
+  ],
+  "tracks": [
+    {
+      "title": "Jazz in Ordinary Time — No. 00",
+      "portfolio": 1,
+      "number": 0,
+      "file": "tracks/Jazz in Ordinary Time 00.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 01",
+      "portfolio": 1,
+      "number": 1,
+      "file": "tracks/Jazz in Ordinary time 01.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 02",
+      "portfolio": 1,
+      "number": 2,
+      "file": "tracks/Jazz in Ordinary time 02.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 03",
+      "portfolio": 1,
+      "number": 3,
+      "file": "tracks/Jazz in Ordinary time 03.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 04",
+      "portfolio": 1,
+      "number": 4,
+      "file": "tracks/Jazz in Ordinary time 04.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 05",
+      "portfolio": 1,
+      "number": 5,
+      "file": "tracks/Jazz in Ordinary Time 05.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 06",
+      "portfolio": 1,
+      "number": 6,
+      "file": "tracks/Jazz in Ordinary time 06.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 07",
+      "portfolio": 1,
+      "number": 7,
+      "file": "tracks/Jazz in Ordinary time 07.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 08",
+      "portfolio": 1,
+      "number": 8,
+      "file": "tracks/Jazz in Ordinary time 08.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 09",
+      "portfolio": 1,
+      "number": 9,
+      "file": "tracks/Jazz in Ordinary Time 09.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 10",
+      "portfolio": 1,
+      "number": 10,
+      "file": "tracks/Jazz in Ordinary time 10.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 11",
+      "portfolio": 1,
+      "number": 11,
+      "file": "tracks/Jazz in Ordinary time 11.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 12",
+      "portfolio": 1,
+      "number": 12,
+      "file": "tracks/Jazz in Ordinary time 12.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 13",
+      "portfolio": 1,
+      "number": 13,
+      "file": "tracks/Jazz in Ordinary time 13.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 14",
+      "portfolio": 1,
+      "number": 14,
+      "file": "tracks/Jazz in Ordinary time 14.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 15",
+      "portfolio": 1,
+      "number": 15,
+      "file": "tracks/Jazz in Ordinary time 15.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 16",
+      "portfolio": 1,
+      "number": 16,
+      "file": "tracks/Jazz in Ordinary Time 16.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 17",
+      "portfolio": 1,
+      "number": 17,
+      "file": "tracks/Jazz in Ordinary Time 17.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 18",
+      "portfolio": 1,
+      "number": 18,
+      "file": "tracks/Jazz in Ordinary time 18.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 19",
+      "portfolio": 1,
+      "number": 19,
+      "file": "tracks/Jazz in Ordinary time 19.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 20",
+      "portfolio": 1,
+      "number": 20,
+      "file": "tracks/Jazz in Ordinary time 20.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 21",
+      "portfolio": 1,
+      "number": 21,
+      "file": "tracks/Jazz in Ordinary time 21.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 22",
+      "portfolio": 1,
+      "number": 22,
+      "file": "tracks/Jazz in Ordinary time 22.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 23",
+      "portfolio": 1,
+      "number": 23,
+      "file": "tracks/Jazz in Ordinary time 23.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 24",
+      "portfolio": 1,
+      "number": 24,
+      "file": "tracks/Jazz in Ordinary time 24.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 25",
+      "portfolio": 1,
+      "number": 25,
+      "file": "tracks/Jazz in Ordinary time 25.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 26",
+      "portfolio": 1,
+      "number": 26,
+      "file": "tracks/Jazz in Ordinary Time 26.mp3",
+      "featured": true,
+      "featuredTitle": "Let The Music Begin....",
+      "featuredUrl": "https://qqxlgygacojaugerzgiq.supabase.co/storage/v1/object/public/assets/Jazz%20in%20Ordinary%20Time%2026%20Copy.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 27",
+      "portfolio": 1,
+      "number": 27,
+      "file": "tracks/Jazz in Ordinary Time 27.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 28",
+      "portfolio": 1,
+      "number": 28,
+      "file": "tracks/Jazz in Ordinary Time 28.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 29",
+      "portfolio": 1,
+      "number": 29,
+      "file": "tracks/Jazz in Ordinary Time 29.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 30",
+      "portfolio": 1,
+      "number": 30,
+      "file": "tracks/Jazz in Ordinary Time 30.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 31",
+      "portfolio": 1,
+      "number": 31,
+      "file": "tracks/Jazz in Ordinary Time 31.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 32",
+      "portfolio": 1,
+      "number": 32,
+      "file": "tracks/Jazz in Ordinary Time 32.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 33",
+      "portfolio": 1,
+      "number": 33,
+      "file": "tracks/Jazz in Ordinary Time 33.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 34",
+      "portfolio": 1,
+      "number": 34,
+      "file": "tracks/Jazz in Ordinary Time 34.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 35",
+      "portfolio": 1,
+      "number": 35,
+      "file": "tracks/Jazz in Ordinary Time 35.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 36",
+      "portfolio": 1,
+      "number": 36,
+      "file": "tracks/Jazz in Ordinary Time 36.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 37",
+      "portfolio": 1,
+      "number": 37,
+      "file": "tracks/Jazz in Ordinary Time 37.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 38",
+      "portfolio": 1,
+      "number": 38,
+      "file": "tracks/Jazz in Ordinary Time 38.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 39",
+      "portfolio": 1,
+      "number": 39,
+      "file": "tracks/Jazz in Ordinary Time 39.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 40",
+      "portfolio": 1,
+      "number": 40,
+      "file": "tracks/Jazz in Ordinary Time 40.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 41",
+      "portfolio": 1,
+      "number": 41,
+      "file": "tracks/Jazz in Ordinary Time 41.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 42",
+      "portfolio": 1,
+      "number": 42,
+      "file": "tracks/Jazz in Ordinary Time 42.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 43",
+      "portfolio": 1,
+      "number": 43,
+      "file": "tracks/Jazz in Ordinary Time 43.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 44",
+      "portfolio": 1,
+      "number": 44,
+      "file": "tracks/Jazz in Ordinary Time 44.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 45",
+      "portfolio": 1,
+      "number": 45,
+      "file": "tracks/Jazz in Ordinary Time 45.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 46",
+      "portfolio": 1,
+      "number": 46,
+      "file": "tracks/Jazz in Ordinary Time 46.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 47",
+      "portfolio": 1,
+      "number": 47,
+      "file": "tracks/Jazz in Ordinary Time 47.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 48",
+      "portfolio": 1,
+      "number": 48,
+      "file": "tracks/Jazz in Ordinary Time 48.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 49",
+      "portfolio": 1,
+      "number": 49,
+      "file": "tracks/Jazz in Ordinary Time 49.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 50",
+      "portfolio": 1,
+      "number": 50,
+      "file": "tracks/Jazz in Ordinary Time 50.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 51",
+      "portfolio": 1,
+      "number": 51,
+      "file": "tracks/Jazz in Ordinary Time 51.mp3"
+    },
+    {
+      "title": "Jazz in Ordinary Time — No. 52",
+      "portfolio": 1,
+      "number": 52,
+      "file": "tracks/Jazz in Ordinary Time 52.mp3"
+    }
+  ]
+}
