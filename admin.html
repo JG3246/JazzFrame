@@ -55,10 +55,6 @@
   .invite-cols{grid-template-columns:2fr 1.5fr 1fr 1fr 80px;}
   .submit-cols{grid-template-columns:1.5fr 1fr 2fr 80px 80px;}
   .full-submit-cols{grid-template-columns:110px 1.3fr 1.3fr 1fr 80px;}
-  .badge{display:inline-block;padding:0.15rem 0.5rem;font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;}
-  .badge-used{background:rgba(201,168,76,0.15);color:var(--gold);}
-  .badge-unused{background:rgba(42,50,64,0.8);color:var(--mist);}
-  .badge-new{background:rgba(181,74,47,0.2);color:var(--rust);}
 
   .action-btn{border:1px solid rgba(201,168,76,0.25);background:transparent;color:var(--mist);padding:0.2rem 0.5rem;font-size:0.55rem;font-family:'DM Mono',monospace;cursor:pointer;letter-spacing:0.1em;transition:all 0.2s;text-transform:uppercase;}
   .action-btn:hover{border-color:var(--gold);color:var(--gold);}
@@ -80,9 +76,6 @@
   .section-block{margin-bottom:2.5rem;}
   .block-title{font-size:0.65rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--mist);margin-bottom:1.2rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(201,168,76,0.12);}
 
-  /* Invite bulk */
-  .bulk-area{position:relative;}
-  .bulk-hint{font-size:0.58rem;color:var(--mist);margin-top:0.4rem;line-height:1.6;}
 
   /* Audio upload */
   .audio-zone{border:1.5px dashed rgba(201,168,76,0.25);padding:2rem;text-align:center;cursor:pointer;transition:all 0.3s;margin-bottom:1rem;}
@@ -132,8 +125,7 @@
   <div class="aside-logo">JazzEra</div>
   <div class="aside-sub">Admin Console</div>
   <div class="nav-item on" onclick="showPage('dashboard',this)">Dashboard</div>
-  <div class="nav-item" onclick="showPage('invites',this)">Invites</div>
-  <div class="nav-item" onclick="showPage('lrinvites',this)">Listening Room</div>
+  <div class="nav-item" onclick="showPage('uploadaccess',this)">Upload Access</div>
   <div class="nav-item" onclick="showPage('submissions',this)">Submissions</div>
   <div class="nav-item" onclick="showPage('session',this)">Session Settings</div>
   <div class="aside-divider"></div>
@@ -151,8 +143,8 @@
     <div class="page-title">Dashboard</div>
     <div class="page-sub">Overview of the current session</div>
     <div class="stat-row">
-      <div class="stat-card"><div class="stat-num" id="statInvites">—</div><div class="stat-label">Invites sent</div></div>
-      <div class="stat-card"><div class="stat-num" id="statUsed">—</div><div class="stat-label">Accessed</div></div>
+      <div class="stat-card"><div class="stat-num" id="statInvites">—</div><div class="stat-label">Upload spots claimed</div></div>
+      <div class="stat-card"><div class="stat-num" id="statUsed">—</div><div class="stat-label">Upload spots remaining</div></div>
       <div class="stat-card"><div class="stat-num" id="statSubs">—</div><div class="stat-label">Submissions</div></div>
       <div class="stat-card"><div class="stat-num" id="statVotes">—</div><div class="stat-label">Total votes</div></div>
     </div>
@@ -165,81 +157,32 @@
     </div>
   </div>
 
-  <!-- INVITES -->
-  <div class="page" id="page-invites">
-    <div class="page-title">Invitations</div>
-    <div class="page-sub">Manage who can access and submit to this session</div>
+  <!-- UPLOAD ACCESS -->
+  <div class="page" id="page-uploadaccess">
+    <div class="page-title">Upload Access</div>
+    <div class="page-sub">Listening has no gate. Posting a video is capped at 100 people total, enforced in Postgres via claim_upload_slot() — this page grants spots through that same function, it doesn't bypass the cap.</div>
 
     <div class="section-block">
-      <div class="block-title">Add invites</div>
+      <div class="block-title">Grant a spot directly</div>
       <div class="form-row">
         <div class="form-group">
           <label class="field-label">Email address</label>
-          <input class="field-input" id="inviteEmail" type="email" placeholder="collaborator@example.com">
+          <input class="field-input" id="uaEmail" type="email" placeholder="collaborator@example.com">
         </div>
         <div class="form-group">
           <label class="field-label">Name (optional)</label>
-          <input class="field-input" id="inviteName" type="text" placeholder="Their name">
+          <input class="field-input" id="uaName" type="text" placeholder="Their name">
         </div>
       </div>
-      <button class="primary-btn" onclick="addInvite()">Send Invite</button>
+      <button class="primary-btn" onclick="addUploadAccess()">Grant Spot</button>
     </div>
 
-    <div class="section-block">
-      <div class="block-title">Bulk import — one email per line</div>
-      <div class="bulk-area">
-        <textarea class="field-input" id="bulkEmails" rows="5" placeholder="alice@example.com&#10;bob@example.com&#10;carol@example.com"></textarea>
-        <div class="bulk-hint">Emails will be added to the invite list. They'll need the session URL to access.</div>
-      </div>
-      <br><br>
-      <button class="primary-btn" onclick="bulkInvite()">Add All</button>
-    </div>
-
-    <div class="block-title">Invite list</div>
+    <div class="block-title">Everyone with a spot (<span id="uaCount">—</span>/100)</div>
     <div class="table-wrap">
       <div class="table-head invite-cols">
-        <span>Email</span><span>Name</span><span>Added</span><span>Status</span><span></span>
+        <span>Email</span><span>Name</span><span>Slot</span><span>Source</span><span></span>
       </div>
-      <div id="inviteList"></div>
-    </div>
-  </div>
-
-  <!-- LISTENING ROOM INVITES -->
-  <div class="page" id="page-lrinvites">
-    <div class="page-title">Listening Room</div>
-    <div class="page-sub">Manage who can access the Listening Room — a separate list from the session invites</div>
-
-    <div class="section-block">
-      <div class="block-title">Add invites</div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="field-label">Email address</label>
-          <input class="field-input" id="lrInviteEmail" type="email" placeholder="listener@example.com">
-        </div>
-        <div class="form-group">
-          <label class="field-label">Name (optional)</label>
-          <input class="field-input" id="lrInviteName" type="text" placeholder="Their name">
-        </div>
-      </div>
-      <button class="primary-btn" onclick="addLRInvite()">Add to List</button>
-    </div>
-
-    <div class="section-block">
-      <div class="block-title">Bulk import — one email per line</div>
-      <div class="bulk-area">
-        <textarea class="field-input" id="lrBulkEmails" rows="5" placeholder="alice@example.com&#10;bob@example.com&#10;carol@example.com"></textarea>
-        <div class="bulk-hint">Emails will be added to the Listening Room list. They'll need the Listening Room URL to access.</div>
-      </div>
-      <br><br>
-      <button class="primary-btn" onclick="bulkLRInvite()">Add All</button>
-    </div>
-
-    <div class="block-title">Listening Room list</div>
-    <div class="table-wrap">
-      <div class="table-head invite-cols">
-        <span>Email</span><span>Name</span><span>Added</span><span></span><span></span>
-      </div>
-      <div id="lrInviteList"></div>
+      <div id="uploadAccessList"></div>
     </div>
   </div>
 
@@ -315,7 +258,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_Q_aC0YGOoob7rInKS3H1NA_DgiE4Jwj';
 let SESSION_ID = 'session_014';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-let invites = [], lrInvites = [], submissions = [], selectedAudio = null;
+let uploadAccess = [], submissions = [], selectedAudio = null;
 
 // ── Admin auth (Supabase login) ──
 async function adminLogin() {
@@ -348,15 +291,15 @@ function showPage(id, el) {
 
 // ── Load all data ──
 async function loadAll() {
-  await Promise.all([loadInvites(), loadLRInvites(), loadSubmissions()]);
+  await Promise.all([loadUploadAccess(), loadSubmissions()]);
   renderDashboard();
   populateSessionForm();
 }
 
-async function loadInvites() {
-  const { data } = await sb.from('invites').select('*').eq('session_id', SESSION_ID).order('created_at', {ascending:false});
-  invites = data || [];
-  renderInviteList();
+async function loadUploadAccess() {
+  const { data } = await sb.from('upload_access').select('*').order('slot_number', {ascending:true});
+  uploadAccess = data || [];
+  renderUploadAccessList();
 }
 
 async function loadSubmissions() {
@@ -368,9 +311,8 @@ async function loadSubmissions() {
 // ── Dashboard ──
 function renderDashboard() {
   const totalVotes = submissions.reduce((a,s) => a + (s.votes||0), 0);
-  const used = invites.filter(i => i.used).length;
-  document.getElementById('statInvites').textContent = invites.length;
-  document.getElementById('statUsed').textContent = used;
+  document.getElementById('statInvites').textContent = uploadAccess.length;
+  document.getElementById('statUsed').textContent = Math.max(0, 100 - uploadAccess.length);
   document.getElementById('statSubs').textContent = submissions.length;
   document.getElementById('statVotes').textContent = totalVotes;
 
@@ -379,102 +321,37 @@ function renderDashboard() {
   el.innerHTML = submissions.slice(0,8).map(s => submissionRow(s)).join('');
 }
 
-// ── Invites ──
-function renderInviteList() {
-  const el = document.getElementById('inviteList');
-  if (!invites.length) { el.innerHTML = '<div style="padding:2rem;text-align:center;font-size:0.65rem;color:var(--mist)">No invites yet.</div>'; return; }
-  el.innerHTML = invites.map(i => `
+// ── Upload access ──
+// Slots are granted through claim_upload_slot(), the same atomically-capped
+// function the public upload flow uses — this page can't grant past 100 either.
+function renderUploadAccessList() {
+  const el = document.getElementById('uploadAccessList');
+  document.getElementById('uaCount').textContent = uploadAccess.length;
+  if (!uploadAccess.length) { el.innerHTML = '<div style="padding:2rem;text-align:center;font-size:0.65rem;color:var(--mist)">No one has claimed a spot yet.</div>'; return; }
+  el.innerHTML = uploadAccess.map(u => `
     <div class="table-row invite-cols">
-      <span style="font-size:0.72rem">${esc(i.email)}</span>
-      <span style="font-size:0.68rem;color:var(--mist)">${esc(i.name||'—')}</span>
-      <span style="font-size:0.62rem;color:rgba(138,154,170,0.6)">${timeAgo(i.created_at)}</span>
-      <span><span class="badge ${i.used?'badge-used':'badge-unused'}">${i.used?'Used':'Pending'}</span></span>
-      <span><button class="action-btn del" onclick="removeInvite('${i.id}')">Remove</button></span>
-    </div>`).join('');
-}
-
-async function addInvite() {
-  const email = document.getElementById('inviteEmail').value.trim().toLowerCase();
-  const name  = document.getElementById('inviteName').value.trim();
-  if (!email) { showToast('Enter an email', 'err'); return; }
-  const { error } = await sb.from('invites').insert({ email, name, session_id: SESSION_ID, used: false });
-  if (error) { showToast(error.message, 'err'); return; }
-  document.getElementById('inviteEmail').value = '';
-  document.getElementById('inviteName').value = '';
-  showToast(`${email} added`, 'ok');
-  await loadInvites();
-}
-
-async function bulkInvite() {
-  const raw = document.getElementById('bulkEmails').value.trim();
-  if (!raw) return;
-  const emails = raw.split('\n').map(e => e.trim().toLowerCase()).filter(e => e && e.includes('@'));
-  if (!emails.length) { showToast('No valid emails found', 'err'); return; }
-  const rows = emails.map(email => ({ email, session_id: SESSION_ID, used: false }));
-  const { error } = await sb.from('invites').insert(rows);
-  if (error) { showToast(error.message, 'err'); return; }
-  document.getElementById('bulkEmails').value = '';
-  showToast(`${emails.length} invites added`, 'ok');
-  await loadInvites();
-}
-
-async function removeInvite(id) {
-  if (!confirm('Remove this invite?')) return;
-  await sb.from('invites').delete().eq('id', id);
-  showToast('Invite removed', 'ok');
-  await loadInvites();
-}
-
-// ── Listening Room invites (separate list from session invites) ──
-async function loadLRInvites() {
-  const { data } = await sb.from('listening_room_invites').select('*').order('created_at', {ascending:false});
-  lrInvites = data || [];
-  renderLRInviteList();
-}
-
-function renderLRInviteList() {
-  const el = document.getElementById('lrInviteList');
-  if (!lrInvites.length) { el.innerHTML = '<div style="padding:2rem;text-align:center;font-size:0.65rem;color:var(--mist)">No one on the list yet.</div>'; return; }
-  el.innerHTML = lrInvites.map(i => `
-    <div class="table-row invite-cols">
-      <span style="font-size:0.72rem">${esc(i.email)}</span>
-      <span style="font-size:0.68rem;color:var(--mist)">${esc(i.name||'—')}</span>
-      <span style="font-size:0.62rem;color:rgba(138,154,170,0.6)">${timeAgo(i.created_at)}</span>
+      <span style="font-size:0.72rem">${esc(u.email)}</span>
+      <span style="font-size:0.68rem;color:var(--mist)">${esc(u.name||'—')}</span>
+      <span style="font-size:0.68rem;color:var(--mist)">#${u.slot_number}</span>
+      <span style="font-size:0.62rem;color:rgba(138,154,170,0.6)">${esc(u.source)}</span>
       <span></span>
-      <span><button class="action-btn del" onclick="removeLRInvite('${i.id}')">Remove</button></span>
     </div>`).join('');
 }
 
-async function addLRInvite() {
-  const email = document.getElementById('lrInviteEmail').value.trim().toLowerCase();
-  const name  = document.getElementById('lrInviteName').value.trim();
+async function addUploadAccess() {
+  const email = document.getElementById('uaEmail').value.trim().toLowerCase();
+  const name  = document.getElementById('uaName').value.trim();
   if (!email) { showToast('Enter an email', 'err'); return; }
-  const { error } = await sb.from('listening_room_invites').insert({ email, name: name || null });
-  if (error) { showToast(error.message, 'err'); return; }
-  document.getElementById('lrInviteEmail').value = '';
-  document.getElementById('lrInviteName').value = '';
-  showToast(`${email} added`, 'ok');
-  await loadLRInvites();
-}
-
-async function bulkLRInvite() {
-  const raw = document.getElementById('lrBulkEmails').value.trim();
-  if (!raw) return;
-  const emails = raw.split('\n').map(e => e.trim().toLowerCase()).filter(e => e && e.includes('@'));
-  if (!emails.length) { showToast('No valid emails found', 'err'); return; }
-  const rows = emails.map(email => ({ email }));
-  const { error } = await sb.from('listening_room_invites').insert(rows);
-  if (error) { showToast(error.message, 'err'); return; }
-  document.getElementById('lrBulkEmails').value = '';
-  showToast(`${emails.length} added to the Listening Room list`, 'ok');
-  await loadLRInvites();
-}
-
-async function removeLRInvite(id) {
-  if (!confirm('Remove this listener from the Listening Room list?')) return;
-  await sb.from('listening_room_invites').delete().eq('id', id);
-  showToast('Removed', 'ok');
-  await loadLRInvites();
+  const { data, error } = await sb.rpc('claim_upload_slot', { p_email: email, p_name: name || null });
+  const result = Array.isArray(data) ? data[0] : data;
+  if (error || !result) { showToast(error?.message || 'Request failed', 'err'); return; }
+  if (result.status === 'invalid_email') { showToast('Enter a valid email address', 'err'); return; }
+  if (result.status === 'full') { showToast('All 100 upload spots are already claimed', 'err'); return; }
+  if (result.status === 'existing') { showToast(`${email} already has a spot`, 'ok'); return; }
+  document.getElementById('uaEmail').value = '';
+  document.getElementById('uaName').value = '';
+  showToast(`${email} granted slot #${result.slot_number}`, 'ok');
+  await loadUploadAccess();
 }
 
 // ── Submissions ──

@@ -32,25 +32,16 @@
     background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
   }
 
-  /* ── GATE SCREEN ── */
-  #gateScreen {
+  /* ── UPLOAD IDENTITY OVERLAY ── */
+  /* Listening needs no gate at all. This overlay only appears when someone tries to
+     post a video — posting is capped at the first 100 people (see claim_upload_slot). */
+  .upload-id-overlay {
     position:fixed; inset:0; z-index:500;
-    background:var(--ink);
-    display:flex; align-items:center; justify-content:center;
-    flex-direction:column;
-    transition:opacity 0.8s ease;
+    background:rgba(10,8,4,0.92);
+    display:none; align-items:center; justify-content:center;
+    padding:2rem;
   }
-  #gateScreen.hidden { opacity:0; pointer-events:none; }
-
-  .gate-logo {
-    font-family:'Playfair Display',serif; font-size:2.2rem; font-weight:900;
-    letter-spacing:0.35em; color:var(--gold); text-transform:uppercase; margin-bottom:0.3rem;
-  }
-  .gate-logo span { color:var(--cream); font-style:italic; font-weight:400; }
-  .gate-sub {
-    font-size:0.6rem; letter-spacing:0.3em; text-transform:uppercase;
-    color:var(--mist); margin-bottom:3.5rem;
-  }
+  .upload-id-overlay.open { display:flex; }
   .gate-card {
     border:1px solid rgba(201,168,76,0.25); padding:3rem;
     width:100%; max-width:420px; position:relative;
@@ -87,8 +78,7 @@
   }
 
   /* ── MAIN APP ── */
-  #app { display:none; }
-  #app.visible { display:block; }
+  #app { display:block; }
 
   header {
     display:flex; justify-content:space-between; align-items:center;
@@ -103,16 +93,16 @@
   .masthead img { width:170px; height:auto; display:inline-block; }
 
   .header-right { display:flex; align-items:center; gap:2rem; }
-  .invited-tag {
-    font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase;
-    color:var(--rust); border:1px solid rgba(181,74,47,0.35); padding:0.3rem 0.7rem;
+  .slots-tag {
+    font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase;
+    color:var(--gold); border:1px solid rgba(201,168,76,0.35); padding:0.3rem 0.7rem;
   }
-  .user-name { font-size:0.68rem; color:var(--mist); }
-  .logout-btn {
+  .cancel-btn {
     font-size:0.6rem; color:rgba(138,154,170,0.5); background:none; border:none;
     cursor:pointer; letter-spacing:0.1em; text-transform:uppercase; transition:color 0.2s;
+    margin-top:0.8rem; display:block; width:100%; text-align:center;
   }
-  .logout-btn:hover { color:var(--mist); }
+  .cancel-btn:hover { color:var(--mist); }
 
   /* ── NEW HERO ── */
   .hero-v2 {
@@ -489,22 +479,20 @@
 </head>
 <body>
 
-<!-- ══ GATE ══ -->
-<div id="gateScreen">
- <video autoplay muted playsinline style="width:220px;margin-bottom:1.5rem;">
-  <source src="https://qqxlgygacojaugerzgiq.supabase.co/storage/v1/object/public/assets/Logo%20clip.mp4" type="video/mp4">
-</video>
-  <div class="gate-logo">Jazz<span>Era</span></div>
-  <div class="gate-sub">Invite-only visual sessions</div>
+<!-- ══ UPLOAD IDENTITY OVERLAY ══ -->
+<!-- Listening has no gate. This only appears when someone tries to post a video —
+     posting is capped at the first 100 people (see claim_upload_slot RPC). -->
+<div class="upload-id-overlay" id="uploadIdOverlay">
   <div class="gate-card">
-    <div class="gate-heading">Enter your invite</div>
-    <div class="gate-desc">This session is open to invited collaborators only. Enter the email address your invitation was sent to.</div>
-    <label class="field-label" for="gateEmail">Invited email address</label>
-    <input class="field-input" id="gateEmail" type="email" placeholder="you@example.com" autocomplete="email">
-    <label class="field-label" for="gateName">How you'd like to be credited</label>
-    <input class="field-input" id="gateName" type="text" placeholder="Your name or alias">
-    <button class="gate-btn" onclick="handleGateSubmit()">Enter Session</button>
-    <div class="gate-error" id="gateError"></div>
+    <div class="gate-heading">One more thing before you upload</div>
+    <div class="gate-desc">Posting a video is limited to the first 100 people. Enter your email and how you'd like to be credited to claim your spot.</div>
+    <label class="field-label" for="uploadEmail">Your email</label>
+    <input class="field-input" id="uploadEmail" type="email" placeholder="you@example.com" autocomplete="email">
+    <label class="field-label" for="uploadName">How you'd like to be credited</label>
+    <input class="field-input" id="uploadName" type="text" placeholder="Your name or alias">
+    <button class="gate-btn" onclick="handleUploadIdSubmit()">Claim my upload spot</button>
+    <button class="cancel-btn" onclick="closeUploadIdOverlay()">Cancel</button>
+    <div class="gate-error" id="uploadIdError"></div>
   </div>
 </div>
 
@@ -518,9 +506,7 @@
   <header>
     <div class="logo">Jazz<span>Era</span></div>
     <div class="header-right">
-      <div class="invited-tag">Invited</div>
-      <div class="user-name" id="headerName"></div>
-      <button class="logout-btn" onclick="logout()">Leave session</button>
+      <div class="slots-tag" id="slotsTag"></div>
     </div>
   </header>
 
@@ -740,7 +726,7 @@ const SESSION_ID = 'session_014'; // change per session
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ── State ──
-let currentUser = null;
+let currentUser = null; // set only once someone claims an upload spot
 let submissions = [];
 let sortMode = 'votes';
 let selectedFile = null;
@@ -750,51 +736,75 @@ let rafId = null;
 let totalDuration = 0;
 const BARS = 60;
 
-// ══ GATE ══
-async function handleGateSubmit() {
-  const email = document.getElementById('gateEmail').value.trim().toLowerCase();
-  const name  = document.getElementById('gateName').value.trim();
-  const errEl = document.getElementById('gateError');
+// ══ UPLOAD IDENTITY (posting only — listening needs none of this) ══
+// Posting a video is capped at the first 100 people, enforced for real by the
+// claim_upload_slot() function and the submissions RLS policy in Postgres — this
+// client-side flow just collects the email/name and surfaces the result.
+let uploadIdResolve = null;
+
+function openUploadIdOverlay() {
+  document.getElementById('uploadIdError').textContent = '';
+  const stored = JSON.parse(sessionStorage.getItem('jf_uploader') || 'null');
+  if (stored) {
+    document.getElementById('uploadEmail').value = stored.email;
+    document.getElementById('uploadName').value = stored.name || '';
+  }
+  document.getElementById('uploadIdOverlay').classList.add('open');
+  return new Promise(resolve => { uploadIdResolve = resolve; });
+}
+
+function closeUploadIdOverlay(result = null) {
+  document.getElementById('uploadIdOverlay').classList.remove('open');
+  if (uploadIdResolve) { uploadIdResolve(result); uploadIdResolve = null; }
+}
+
+async function handleUploadIdSubmit() {
+  const email = document.getElementById('uploadEmail').value.trim().toLowerCase();
+  const name  = document.getElementById('uploadName').value.trim();
+  const errEl = document.getElementById('uploadIdError');
   errEl.textContent = '';
 
   if (!email || !name) { errEl.textContent = 'Please fill in both fields.'; return; }
 
-  // Check invite table — if query fails, still let user in if they have an email
-  try {
-    const { data, error } = await sb
-      .from('invites')
-      .select('id')
-      .eq('email', email)
-      .eq('session_id', SESSION_ID)
-      .maybeSingle();
+  const { data, error } = await sb.rpc('claim_upload_slot', { p_email: email, p_name: name });
+  const result = Array.isArray(data) ? data[0] : data;
 
-    if (!error && !data) {
-      errEl.textContent = 'This email isn\'t on the invite list for this session.';
-      return;
-    }
-  } catch(e) {
-    // If database check fails, still allow entry — log only
-    console.warn('Invite check failed:', e);
+  if (error || !result) {
+    errEl.textContent = 'Couldn\'t reach the server — please try again in a moment.';
+    return;
+  }
+  if (result.status === 'invalid_email') {
+    errEl.textContent = 'Please enter a valid email address.';
+    return;
+  }
+  if (result.status === 'full') {
+    errEl.textContent = 'Upload access is full — 100 people have already claimed a spot. Thanks for your interest in JazzEra!';
+    return;
   }
 
-  currentUser = { email, name };
-  sessionStorage.setItem('jf_user', JSON.stringify(currentUser));
-  enterApp();
+  const identity = { email: result.email, name: result.name || name };
+  sessionStorage.setItem('jf_uploader', JSON.stringify(identity));
+  closeUploadIdOverlay(identity);
+  await refreshSlotsTag();
 }
 
-function enterApp() {
-  document.getElementById('gateScreen').classList.add('hidden');
-  setTimeout(() => {
-    document.getElementById('gateScreen').style.display = 'none';
-    document.getElementById('app').classList.add('visible');
-    document.getElementById('headerName').textContent = currentUser.name;
-    init();
-  }, 800);
+// Ensures we have a claimed upload identity, prompting for one if needed.
+// Returns the identity, or null if the visitor cancelled or the cap is full.
+async function ensureUploadIdentity() {
+  const stored = JSON.parse(sessionStorage.getItem('jf_uploader') || 'null');
+  if (stored) return stored;
+  return await openUploadIdOverlay();
 }
 
-function logout() {
-  sessionStorage.removeItem('jf_user');
-  location.reload();
+async function refreshSlotsTag() {
+  const el = document.getElementById('slotsTag');
+  if (!el) return;
+  const { data, error } = await sb.rpc('upload_access_status');
+  const status = Array.isArray(data) ? data[0] : data;
+  if (error || !status) { el.textContent = ''; return; }
+  el.textContent = status.remaining > 0
+    ? `${status.remaining} upload spots left`
+    : 'Upload spots full';
 }
 
 // ── Init ──
@@ -804,6 +814,7 @@ async function init() {
   await loadSubmissions();
   await loadCatalogue();
   subscribeRealtime();
+  refreshSlotsTag();
 }
 
 async function loadSession() {
@@ -1109,8 +1120,13 @@ function updateChar() {
 }
 
 async function submitVideo() {
-  if (!selectedFile || !currentUser) return;
+  if (!selectedFile) return;
   if (!selectedTrack) { showToast('Please choose which track your video responds to', 'err'); return; }
+
+  const identity = await ensureUploadIdentity();
+  if (!identity) { await refreshSlotsTag(); return; }
+  currentUser = identity;
+
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'Uploading…';
   const pw = document.getElementById('progressWrap');
@@ -1288,15 +1304,10 @@ document.addEventListener('play', (e) => {
     t.audio.addEventListener('pause', () => { t.btn.textContent = '▶'; t.btn.classList.remove('on'); });
   });
 // ── Boot ──
+// Listening needs no gate at all — the app just loads. Only posting a video asks
+// for an email/name, and only the first time (see ensureUploadIdentity above).
 window.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox')}); });
-
-const stored = sessionStorage.getItem('jf_user');
-if (stored) {
-  currentUser = JSON.parse(stored);
-  document.getElementById('gateEmail').value = currentUser.email;
-  document.getElementById('gateName').value = currentUser.name;
-  enterApp();
-}
+init();
 </script>
 </body>
 </html>
