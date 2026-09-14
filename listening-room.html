@@ -148,7 +148,12 @@ var TRACKS = [
 
 (function(){
   var audio = new Audio();
-  audio.preload = 'none';
+  // 'metadata' (not 'none') so the browser opens the connection and spins up
+  // its audio decode pipeline against the first track right away, instead of
+  // both happening cold on whichever track gets clicked first. That one-time
+  // warm-up, not per-file download time, is what made only the first play lag.
+  audio.preload = 'metadata';
+  if (TRACKS.length) audio.src = TRACKS[0].src;
   var current = -1;
   var list = document.getElementById('trackList');
   var pbPlay = document.getElementById('pbPlay');

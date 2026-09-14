@@ -97,6 +97,12 @@
     font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase;
     color:var(--gold); border:1px solid rgba(201,168,76,0.35); padding:0.3rem 0.7rem;
   }
+  .slots-note {
+    padding:0.5rem 3rem; font-size:0.6rem; line-height:1.6; letter-spacing:0.02em;
+    color:var(--mist); text-align:right; background:rgba(10,8,4,0.4);
+    border-bottom:1px solid rgba(201,168,76,0.08);
+  }
+  @media(max-width:800px) { .slots-note { padding:0.5rem 1.5rem; text-align:left; } }
   .cancel-btn {
     font-size:0.6rem; color:rgba(138,154,170,0.5); background:none; border:none;
     cursor:pointer; letter-spacing:0.1em; text-transform:uppercase; transition:color 0.2s;
@@ -509,6 +515,7 @@
       <div class="slots-tag" id="slotsTag"></div>
     </div>
   </header>
+  <div class="slots-note">We're testing with the first 100 people to post a video, to make sure everything works properly before opening it up further. More spots will be released soon.</div>
 
   <!-- New Hero -->
   <section class="hero-v2">
@@ -977,6 +984,7 @@ let catalogue = { portfolios: [], tracks: [] };
 let activePortfolio = 1;
 let catalogueAudio = null;
 let catalogueAudioTrackFile = null;
+let catalogueActiveBtn = null;
 
 async function loadCatalogue() {
   try {
@@ -990,6 +998,35 @@ async function loadCatalogue() {
   activePortfolio = (catalogue.portfolios.find(p => p.status === 'live') || catalogue.portfolios[0] || {}).id || 1;
   renderPortfolioTabs();
   renderCatalogue();
+
+  // Warm up the audio element against the first track as soon as the catalogue
+  // is known, instead of waiting for someone to click play. Opening the
+  // connection and spinning up the browser's decode pipeline is a one-time
+  // cost — doing it here means it's already paid by the time anyone presses
+  // play, rather than that first click eating it while every later track
+  // switch (reusing the now-warm element) feels instant.
+  const firstTrack = catalogue.tracks.find(t => t.portfolio === activePortfolio);
+  if (firstTrack) initCatalogueAudio(firstTrack.file);
+}
+
+function initCatalogueAudio(warmFile) {
+  if (catalogueAudio) return;
+  catalogueAudio = new Audio();
+  catalogueAudio.preload = 'metadata';
+  catalogueAudio.addEventListener('play', () => {
+    document.querySelectorAll('.cat-play').forEach(b => b.classList.remove('on'));
+    if (catalogueActiveBtn) { catalogueActiveBtn.classList.add('on'); catalogueActiveBtn.textContent = '❚❚'; }
+  });
+  catalogueAudio.addEventListener('pause', () => {
+    if (catalogueActiveBtn) { catalogueActiveBtn.classList.remove('on'); catalogueActiveBtn.textContent = '▶'; }
+  });
+  catalogueAudio.addEventListener('ended', () => {
+    if (catalogueActiveBtn) { catalogueActiveBtn.classList.remove('on'); catalogueActiveBtn.textContent = '▶'; }
+  });
+  if (warmFile) {
+    catalogueAudioTrackFile = warmFile;
+    catalogueAudio.src = encodeURI(warmFile);
+  }
 }
 
 function renderPortfolioTabs() {
@@ -1041,19 +1078,14 @@ function renderCatalogue() {
 }
 
 function toggleCataloguePlay(file, btn) {
-  const allBtns = document.querySelectorAll('.cat-play');
   if (catalogueAudio && catalogueAudioTrackFile === file && !catalogueAudio.paused) {
     catalogueAudio.pause();
     return;
   }
-  if (!catalogueAudio) {
-    catalogueAudio = new Audio();
-    catalogueAudio.addEventListener('play', () => { allBtns.forEach(b => b.classList.remove('on')); btn.classList.add('on'); btn.textContent = '❚❚'; });
-    catalogueAudio.addEventListener('pause', () => { btn.classList.remove('on'); btn.textContent = '▶'; });
-    catalogueAudio.addEventListener('ended', () => { btn.classList.remove('on'); btn.textContent = '▶'; });
-  }
+  initCatalogueAudio();
+  catalogueActiveBtn = btn;
   if (catalogueAudioTrackFile !== file) {
-    allBtns.forEach(b => { b.classList.remove('on'); b.textContent = '▶'; });
+    document.querySelectorAll('.cat-play').forEach(b => { b.classList.remove('on'); b.textContent = '▶'; });
     catalogueAudio.src = encodeURI(file);
     catalogueAudioTrackFile = file;
   }
