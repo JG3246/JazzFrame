@@ -154,6 +154,21 @@
     display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;
     max-width: 680px; margin: 0 auto;
   }
+  .creator-statement {
+    padding: 1.6rem 2rem 2.2rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(201,168,76,0.12);
+  }
+  .creator-statement p {
+    font-family: 'Cormorant Garamond', serif; font-style: italic;
+    font-size: 0.95rem; line-height: 1.7; color: rgba(245,240,232,0.8);
+    max-width: 620px; margin: 0 auto;
+  }
+  .creator-statement em { color: var(--gold-deep); font-style: italic; }
+  @media (max-width: 600px) {
+    .creator-statement { padding: 1.2rem 1.5rem 1.8rem; }
+    .creator-statement p { font-size: 0.88rem; }
+  }
   @media (max-width: 680px) {
     .hero-players { grid-template-columns: 1fr; max-width: 420px; }
   }
@@ -613,6 +628,11 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- Creator Statement -->
+  <section class="creator-statement">
+    <p>This is Jim Green's project. He wrote it, shaped it, and decides everything it becomes. <em>Claude</em> — Anthropic's AI — designed and built the site itself, under his direction, from a vision that's entirely his.</p>
   </section>
 
   <!-- Catalogue -->
