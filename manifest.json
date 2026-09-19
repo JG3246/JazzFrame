@@ -1,7 +1,7 @@
 {
   "name": "JazzEra",
   "short_name": "JazzEra",
-  "description": "Invite-only visual sessions for jazz music",
+  "description": "Open visual sessions for jazz music",
   "start_url": "/JazzFrame/",
   "scope": "/JazzFrame/",
   "display": "standalone",
