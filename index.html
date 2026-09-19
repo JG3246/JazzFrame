@@ -101,16 +101,27 @@
 
     <p>JazzEra is a site where the music is provided and the user does the rest. Having listened to the track the user can respond with a video &mdash; one they create to go with their own interpretation of the track, or one just to see how it works. If they or a friend can write lyrics, they can create a sing-along video, and then, if they like what they&rsquo;ve done, they can share.</p>
 
-    <div class="intro-track-count">There are currently <strong>fifty-three tracks</strong> in the JazzEra portfolio &mdash; one with a video made to show what&rsquo;s possible, and fifty-two waiting.</div>
+    <div class="intro-track-count">There are currently <strong>fifty-three tracks</strong> in the JazzEra portfolio, and <strong>seven real examples</strong> &mdash; videos and a photo slideshow &mdash; showing what&rsquo;s possible when a track and a response are merged into one.</div>
 
     <p>JazzEra is not a commercial venture, it&rsquo;s free and we&rsquo;re keen to share. The tracks at present are all AI generated because the developer is definitely not musical. He&rsquo;s a listener not a performer. JazzEra, now it&rsquo;s live, is open to anyone &mdash; musicians, filmmakers, researchers, developers &mdash; we&rsquo;d like anyone who enjoys jazz and who wants to take the idea further to be able to participate.</p>
   </div>
 
   <div class="intro-cta">
-    <p>At the moment we&rsquo;re testing the site so it&rsquo;s invite-only to access and use. If you provide your email it will be added to the invited list and you will be able to access the Homepage and explore. If you think this might be for you then <a href="gate.html">click here</a> to go to the landing site&hellip;and enjoy.</p>
+    <p>Listening is open to everyone &mdash; no sign-up, no email, no waiting list. <a href="gate.html" id="enterLink">Click here</a> to go to the site, browse the catalogue, watch the examples&hellip;and enjoy. If you want to post a video of your own, we&rsquo;re testing that with the first 100 people; you&rsquo;ll only be asked for an email and a name at that point, to claim a spot.</p>
   </div>
 
 </div>
+
+<script>
+// Carry the ?src= traffic-source tag through to gate.html, where visits are logged.
+// Without it (or without JS) the link is just plain gate.html.
+(function () {
+  try {
+    var src = (new URLSearchParams(location.search).get('src') || '').trim();
+    if (src) document.getElementById('enterLink').href = 'gate.html?src=' + encodeURIComponent(src);
+  } catch (e) {}
+})();
+</script>
 
 </body>
 </html>

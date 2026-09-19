@@ -714,7 +714,7 @@
   <footer>
     <div class="foot-row">
       <div class="foot-logo">JazzEra</div>
-      <div class="foot-copy">Invite-only · Visual Archive · Session #014</div>
+      <div class="foot-copy">Open to all listeners · Visual Archive · Session #014</div>
     </div>
     <div class="foot-licensing">
       All instrumental compositions on JazzEra are released free under Creative Commons licensing and may be used, shared, and performed without restriction. Songs where both music and lyrics are AI-generated carry the same freedom. Where human lyrics are involved, all rights are reserved.*
@@ -752,6 +752,25 @@ const SESSION_ID = 'session_014'; // change per session
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ── Visit tracking ──
+// Writes to public.visit_events (insert-only for anon). Events: page_view, claim_started,
+// claim_completed, claim_full. `src` is the ?src= param from the landing URL; visitor_id is a
+// random per-tab id so starts can be matched to completions. No PII, and never blocks the UI.
+const TRACK_SRC = (new URLSearchParams(location.search).get('src') || '').trim().slice(0, 100) || null;
+const TRACK_VISITOR = (() => {
+  try {
+    let id = sessionStorage.getItem('jf_visitor');
+    if (!id) { id = Math.random().toString(36).slice(2) + Date.now().toString(36); sessionStorage.setItem('jf_visitor', id); }
+    return id;
+  } catch (e) { return null; }
+})();
+function track(event) {
+  try {
+    sb.from('visit_events').insert({ event, src: TRACK_SRC, visitor_id: TRACK_VISITOR }).then(() => {}, () => {});
+  } catch (e) { /* tracking must never break the page */ }
+}
+track('page_view');
+
 // ── State ──
 let currentUser = null; // set only once someone claims an upload spot
 let submissions = [];
@@ -777,6 +796,7 @@ function openUploadIdOverlay() {
     document.getElementById('uploadName').value = stored.name || '';
   }
   document.getElementById('uploadIdOverlay').classList.add('open');
+  track('claim_started');
   return new Promise(resolve => { uploadIdResolve = resolve; });
 }
 
@@ -805,10 +825,12 @@ async function handleUploadIdSubmit() {
     return;
   }
   if (result.status === 'full') {
+    track('claim_full');
     errEl.textContent = 'Upload access is full — 100 people have already claimed a spot. Thanks for your interest in JazzEra!';
     return;
   }
 
+  track('claim_completed');
   const identity = { email: result.email, name: result.name || name };
   sessionStorage.setItem('jf_uploader', JSON.stringify(identity));
   closeUploadIdOverlay(identity);
