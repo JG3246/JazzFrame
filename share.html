@@ -235,7 +235,13 @@ function renderPage() {
   const merged = sub.merge_status === 'ready' && sub.merged_video_url;
   const videoSrc = merged ? sub.merged_video_url : sub.video_url;
   const preparing = !merged && sub.track_title && ['pending', 'processing'].includes(sub.merge_status);
-  const dlName = 'jazzera_' + (sub.author_name || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.mp4';
+  // 'skipped' = the visitor's own video already had the track's audio, so it's downloadable
+  // as-is. Merged output is always mp4; a skipped video is their original file, so keep its extension.
+  const skipped = sub.merge_status === 'skipped';
+  const origExt = (sub.video_url.split('?')[0].split('.').pop() || '').toLowerCase();
+  const dlExt = merged ? 'mp4' : (/^[a-z0-9]{2,5}$/.test(origExt) ? origExt : 'mp4');
+  const dlSrc = merged ? sub.merged_video_url : (skipped ? sub.video_url : null);
+  const dlName = 'jazzera_' + (sub.author_name || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.' + dlExt;
 
   document.getElementById('shareContainer').innerHTML = `
     <div class="session-badge">
@@ -265,7 +271,7 @@ function renderPage() {
     </div>` : ''}
 
     <div class="share-actions">
-      ${merged ? `<a class="primary-action" style="text-decoration:none" href="${esc(sub.merged_video_url)}?download=${encodeURIComponent(dlName)}" download>⬇ Download Video</a>` : ''}
+      ${dlSrc ? `<a class="primary-action" style="text-decoration:none" href="${esc(dlSrc)}?download=${encodeURIComponent(dlName)}" download>⬇ Download Video</a>` : ''}
       <button class="secondary-action" onclick="copyLink()">⬡ Copy Link</button>
     </div>
 

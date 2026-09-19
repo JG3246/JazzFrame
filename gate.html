@@ -249,6 +249,14 @@
   .preview-clear:hover { border-color:var(--rust); color:var(--rust); }
 
   .field-row { max-width:560px; margin-bottom:1.5rem; }
+
+  .audio-choice { display:flex; flex-direction:column; gap:0.5rem; margin-bottom:0.8rem; }
+  .audio-option {
+    display:flex; align-items:flex-start; gap:0.6rem; cursor:pointer;
+    font-size:0.7rem; line-height:1.5; color:var(--cream);
+  }
+  .audio-option input { accent-color:var(--gold); margin-top:0.2rem; cursor:pointer; }
+  .audio-tip { font-size:0.62rem; line-height:1.7; color:var(--mist); }
   .char-count {
     font-size:0.58rem; color:rgba(138,154,170,0.5);
     text-align:right; margin-top:-0.8rem; letter-spacing:0.08em;
@@ -679,6 +687,15 @@
       <div class="track-options" id="trackOptions" style="margin-bottom:0.6rem;">
         <span style="font-size:0.68rem;color:var(--mist);" id="uploadTrackHint">Choose a track from the catalogue above — <a href="#catalogueSection" style="color:var(--gold);" onclick="document.getElementById('catalogueSection').scrollIntoView({behavior:'smooth'});return false;">jump back up</a>.</span>
       </div>
+    </div>
+
+    <div class="field-row">
+      <span class="field-label" id="audioModeLabel">Does your video already include the track's audio?</span>
+      <div class="audio-choice" role="radiogroup" aria-labelledby="audioModeLabel">
+        <label class="audio-option"><input type="radio" name="audioMode" value="add" checked><span>No &mdash; add the track for me</span></label>
+        <label class="audio-option"><input type="radio" name="audioMode" value="included"><span>Yes &mdash; it&rsquo;s already in there (I sang or played along myself)</span></label>
+      </div>
+      <p class="audio-tip">Tip: recording your own vocal or playing along? Wear headphones to hear the track, so your mic picks up only you &mdash; that gives the cleanest result. Keep &ldquo;add the track for me&rdquo; selected and we&rsquo;ll mix it in.</p>
     </div>
 
     <div class="field-row">
@@ -1201,6 +1218,11 @@ async function submitVideo() {
   if (!identity) { await refreshSlotsTag(); return; }
   currentUser = identity;
 
+  // 'included' = the visitor's video already carries the track's audio, so no merge is
+  // needed: the row is inserted as 'skipped', which the merge worker never claims and
+  // which gallery/share/admin serve as-is (they only use merged_video_url when 'ready').
+  const audioIncluded = document.querySelector('input[name="audioMode"]:checked')?.value === 'included';
+
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'Uploading…';
   const pw = document.getElementById('progressWrap');
@@ -1242,10 +1264,13 @@ async function submitVideo() {
       note: document.getElementById('noteField').value.trim(),
       track_title: selectedTrack,
       votes: 0,
-      merge_status: 'pending',
+      merge_status: audioIncluded ? 'skipped' : 'pending',
     });
 
-    showToast('Submission received — your video with the track mixed in will be ready in a few minutes', 'ok');
+    showToast(audioIncluded
+      ? 'Submission received — your video is now in the gallery'
+      : 'Submission received — your video with the track mixed in will be ready in a few minutes', 'ok');
+    document.querySelector('input[name="audioMode"][value="add"]').checked = true;
     selectedTrack = null;
     document.querySelectorAll('.track-option').forEach(b => b.classList.remove('selected'));
     clearVideo();
@@ -1270,12 +1295,18 @@ function openLightbox(id) {
   const sub = submissions.find(s => s.id === id);
   if (!sub) return;
   const merged = sub.merge_status === 'ready' && sub.merged_video_url;
+  // 'skipped' = the visitor's own video already had the track's audio, so it's served and
+  // downloadable as-is (no merge happened).
+  const skipped = sub.merge_status === 'skipped';
   document.getElementById('lbVideo').src = merged ? sub.merged_video_url : sub.video_url;
   const dl = document.getElementById('lbDownload');
   const prep = document.getElementById('lbPreparing');
-  if (merged) {
-    const fname = 'jazzera_' + (sub.author_name || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.mp4';
-    dl.href = sub.merged_video_url + '?download=' + encodeURIComponent(fname);
+  if (merged || skipped) {
+    // Merged output is always mp4; a skipped video is their original file, so keep its extension.
+    const origExt = (sub.video_url.split('?')[0].split('.').pop() || '').toLowerCase();
+    const ext = merged ? 'mp4' : (/^[a-z0-9]{2,5}$/.test(origExt) ? origExt : 'mp4');
+    const fname = 'jazzera_' + (sub.author_name || 'video').toLowerCase().replace(/[^a-z0-9]+/g, '_') + '.' + ext;
+    dl.href = (merged ? sub.merged_video_url : sub.video_url) + '?download=' + encodeURIComponent(fname);
     dl.style.display = 'inline-block';
     prep.style.display = 'none';
   } else {
